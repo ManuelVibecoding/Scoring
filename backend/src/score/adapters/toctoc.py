@@ -33,6 +33,11 @@ def _entero(texto: str | None) -> int | None:
     return int(valor) if valor is not None else None
 
 
+def _positivo(valor: float | None) -> float | None:
+    """Algunos avisos publican superficie 0: eso es "sin dato", no un departamento de 0 m²."""
+    return valor if valor is not None and valor > 0 else None
+
+
 def _primero(lista: list[str] | None) -> str | None:
     return lista[0] if lista else None
 
@@ -69,7 +74,7 @@ def leer_avisos(html: str, operacion: Operacion, tipo: TipoPropiedad, comuna: st
                 lon=float(r["longitud"]),
                 precio_clp=_precio(r.get("precios", []), "$"),
                 precio_uf=_precio(r.get("precios", []), "UF"),
-                superficie_m2=a_numero(_primero(r.get("superficie"))),
+                superficie_m2=_positivo(a_numero(_primero(r.get("superficie")))),
                 dormitorios=_entero(_primero(r.get("dormitorios"))),
                 banos=_entero(_primero(r.get("bannos"))),
                 horas_publicado=r.get("horasPublicado"),

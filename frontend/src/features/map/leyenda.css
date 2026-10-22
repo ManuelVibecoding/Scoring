@@ -1,0 +1,57 @@
+.leyenda {
+  position: absolute;
+  left: var(--e-4);
+  bottom: var(--e-5);
+  width: 220px;
+  padding: var(--e-3);
+  background: var(--papel);
+  border-top: var(--filete);
+  display: grid;
+  gap: var(--e-2);
+}
+
+.leyenda select {
+  font: inherit;
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+  padding: var(--e-1) 0;
+  border: none;
+  border-bottom: var(--filete-fino);
+  background: transparent;
+  border-radius: 0;
+}
+
+.leyenda-escala {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: 8px;
+}
+
+.leyenda-extremos {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-3);
+}
+
+.leyenda-nota {
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-3);
+  line-height: 1.35;
+}
+
+@media (max-width: 760px) {
+  .leyenda {
+    top: var(--e-2);
+    bottom: auto;
+    left: var(--e-2);
+    width: 150px;
+    padding: var(--e-2);
+    gap: var(--e-1);
+  }
+
+  .leyenda .etiqueta,
+  .leyenda-nota {
+    display: none;
+  }
+}

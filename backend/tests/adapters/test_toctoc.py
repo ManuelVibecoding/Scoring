@@ -54,6 +54,12 @@ def test_uf_con_decimales_y_sin_precio_en_pesos() -> None:
     assert aviso.clp_por_m2 is None
 
 
+def test_superficie_cero_es_sin_dato() -> None:
+    sin_m2 = {**AVISO, "superficie": ["0"]}
+    [aviso] = leer_avisos(_pagina(sin_m2), Operacion.ARRIENDO, TipoPropiedad.CASA, "Ñuñoa")
+    assert aviso.superficie_m2 is None
+
+
 def test_ignora_avisos_sin_coordenadas_y_paginas_sin_datos() -> None:
     sin_ubicacion = {**AVISO, "latitud": None}
     assert leer_avisos(_pagina(sin_ubicacion), Operacion.ARRIENDO, TipoPropiedad.CASA, "X") == []

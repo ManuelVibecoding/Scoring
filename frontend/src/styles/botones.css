@@ -1,0 +1,39 @@
+/* Botones compartidos por el panel y el diálogo de exportación. */
+.boton-principal,
+.boton-secundario {
+  font-weight: var(--peso-medio);
+  font-size: var(--t-chico);
+  padding: var(--e-2) var(--e-4);
+  border: var(--filete);
+  border-radius: 0;
+  transition:
+    background var(--duracion),
+    color var(--duracion),
+    border-color var(--duracion);
+}
+
+.boton-principal {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.boton-principal:hover:not(:disabled) {
+  background: var(--senal);
+  border-color: var(--senal);
+}
+
+.boton-secundario {
+  background: var(--papel);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.enlace {
+  border: none;
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+}

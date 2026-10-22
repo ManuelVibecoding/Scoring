@@ -142,6 +142,20 @@ pero los pesos se mantienen los del plan.
 **Por qué:** el precio refleja también prestigio y escasez. Los pesos del plan ya superan
 a las alternativas probadas (ρ 0,66 contra 0,62 con pesos iguales).
 
+## D-019 · Servicios de mapa sin clave ni costo
+**Fecha:** 2026-10-22
+**Decisión:** mapa base OpenFreeMap (Positron, en grises), imagen satelital de Esri World
+Imagery para la ficha y Nominatim para buscar direcciones.
+**Por qué:** uso personal y "calle gratis" (D-004). Mapillary exige crear una cuenta y un
+token; queda como mejora opcional para agregar foto a nivel de calle.
+
+## D-020 · La ficha se exporta como imagen en los tres formatos
+**Fecha:** 2026-10-22
+**Decisión:** la ficha se dibuja en HTML (1600 × 900) y se convierte a PNG; el PDF y la
+lámina de PowerPoint contienen esa imagen.
+**Por qué:** se ve idéntica en los tres formatos y respeta la tipografía. Una lámina de
+PowerPoint con texto editable queda como mejora futura.
+
 ## D-015 · Emergencias se miden desde el servicio hacia la casa
 **Fecha:** 2026-10-22
 **Decisión:** bomberos y policía se miden como viaje cuartel → casa; urgencias,

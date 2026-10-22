@@ -1,0 +1,51 @@
+/*
+ * Sistema de diseño C · Suizo minimal (docs/diseno.md).
+ * Única fuente de colores, tipografía y espaciado: ningún componente usa valores sueltos.
+ */
+:root {
+  /* Color: blanco, negro y un solo rojo de señal. */
+  --papel: #ffffff;
+  --tinta: #111111;
+  --tinta-2: #4a4a4a;
+  --tinta-3: #8a8a8a;
+  --linea: #e4e4e4;
+  --linea-fuerte: #111111;
+  --fondo-suave: #f5f5f5;
+  --senal: #e2231a;
+  --senal-suave: #fdecea;
+
+  /* Escala del mapa: de gris claro (peor) a negro (mejor). */
+  --escala-1: #e3e3e3;
+  --escala-2: #bdbdbd;
+  --escala-3: #8a8a8a;
+  --escala-4: #3a3a3a;
+  --escala-5: #111111;
+
+  /* Tipografía: una sola familia, cifras tabulares. */
+  --familia: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-fuerte: 600;
+  --t-etiqueta: 0.6875rem; /* 11 px */
+  --t-chico: 0.8125rem; /* 13 px */
+  --t-base: 0.9375rem; /* 15 px */
+  --t-medio: 1.125rem; /* 18 px */
+  --t-grande: 1.75rem; /* 28 px */
+  --t-cifra: 5.5rem; /* 88 px */
+  --interletra-etiqueta: 0.08em;
+
+  /* Espaciado en múltiplos de 4 px. */
+  --e-1: 4px;
+  --e-2: 8px;
+  --e-3: 12px;
+  --e-4: 16px;
+  --e-5: 24px;
+  --e-6: 32px;
+  --e-7: 48px;
+
+  --ancho-panel: 440px;
+  --alto-barra: 56px;
+  --filete: 2px solid var(--linea-fuerte);
+  --filete-fino: 1px solid var(--linea);
+  --duracion: 120ms;
+}

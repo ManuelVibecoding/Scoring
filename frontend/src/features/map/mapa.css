@@ -1,0 +1,20 @@
+.mapa {
+  position: absolute;
+  inset: 0;
+}
+
+/* Controles del mapa con el lenguaje de la app: cuadrados, negro sobre blanco. */
+.mapa .maplibregl-ctrl-group {
+  border-radius: 0;
+  box-shadow: none;
+  border: var(--filete);
+}
+
+.mapa .maplibregl-ctrl-group button + button {
+  border-top: var(--filete-fino);
+}
+
+.mapa .maplibregl-ctrl-attrib {
+  font-family: var(--familia);
+  font-size: var(--t-etiqueta);
+}

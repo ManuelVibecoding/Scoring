@@ -1,0 +1,80 @@
+.dialogo-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: var(--e-5);
+  background: rgba(17, 17, 17, 0.6);
+}
+
+.dialogo {
+  width: min(1200px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  display: grid;
+  gap: var(--e-4);
+  padding: var(--e-5);
+  background: var(--papel);
+  border-top: 4px solid var(--senal);
+}
+
+.dialogo-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.dialogo-cabecera h2 {
+  font-size: var(--t-grande);
+  font-weight: var(--peso-medio);
+  letter-spacing: -0.02em;
+}
+
+.dialogo-cerrar {
+  border: none;
+  background: none;
+  font-size: var(--t-grande);
+  line-height: 1;
+}
+
+.dialogo-marco {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  outline: var(--filete-fino);
+}
+
+.dialogo-escala {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+
+.dialogo-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--e-4);
+  flex-wrap: wrap;
+}
+
+.dialogo-nota {
+  font-size: var(--t-chico);
+  color: var(--tinta-2);
+}
+
+.dialogo-error {
+  color: var(--senal);
+}
+
+.dialogo-botones {
+  display: flex;
+  gap: var(--e-2);
+}
+
+.dialogo-botones button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

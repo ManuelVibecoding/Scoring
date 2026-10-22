@@ -88,6 +88,14 @@ def test_fortalezas_y_debilidades() -> None:
     assert debiles == ["Áreas verdes"]
 
 
+def test_fortaleza_comun_no_cuenta_si_todos_la_tienen() -> None:
+    # Áreas verdes 100 cuando la mediana de la RM es 100 no distingue al lugar.
+    fila = pd.Series({"transporte": 80.0, "verde": 100.0})
+    referencia = {"transporte": 40.0, "verde": 100.0}
+    fuertes, _ = fortalezas_y_debilidades(fila, (TRANSPORTE, VERDE), referencia)
+    assert fuertes == ["Transporte"]
+
+
 def test_percentil_en_grupo() -> None:
     puntajes = pd.Series([10.0, 20.0, 90.0, 95.0])
     grupos = pd.Series(["a", "a", "b", "b"])

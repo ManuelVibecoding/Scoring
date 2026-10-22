@@ -14,6 +14,21 @@ comuna, los arriendos comparables de la zona y una ficha exportable para present
 - [Fichas de las 52 comunas](docs/fichas-comunas.md): indicadores comunales generados.
 - [Cercanías por hexágono](docs/cercanias.md): método, columnas, validación y supuestos.
 - [Modelo de puntaje](docs/modelo-puntaje.md): dimensiones, pesos, calibración y validación.
+- [La app](docs/app.md): funciones, arquitectura y API.
+
+## Usar la app
+
+```bash
+cd backend
+uv run uvicorn score.entrypoints.api:app_por_defecto --factory --port 8000
+```
+
+```bash
+cd frontend
+npm run dev
+```
+
+Luego abre http://localhost:5173 (los datos tienen que estar generados; ver más abajo).
 
 ## Estado
 
@@ -22,8 +37,10 @@ comuna, los arriendos comparables de la zona y una ficha exportable para present
   de calles, conteos del barrio y oferta de buses.
 - **Fase 3 (puntaje):** modelo de 7 dimensiones, validado contra precios de arriendo
   (ρ 0,66) y contra el ICVU (ρ 0,66).
-- **Pendiente:** Fase 4 (app). Datos faltantes: SINIM (bloqueado), SIMCE, riesgos
-  naturales y proyección futura.
+- **Fase 4 (app):** mapa, búsqueda, panel al tocar un punto, arriendos bajo demanda y
+  ficha exportable a PNG, PDF y PowerPoint.
+- **Pendiente (Fase 5):** comparador de puntos, búsqueda inversa, plusvalía. Datos
+  faltantes: SINIM (bloqueado), SIMCE, riesgos naturales y proyección futura.
 
 ## Reproducir los datos
 

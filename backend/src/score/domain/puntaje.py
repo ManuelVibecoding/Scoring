@@ -4,6 +4,7 @@ Reglas puras: reciben una tabla con los indicadores de cada lugar y devuelven pu
 No leen archivos ni conocen de dónde vienen los datos.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -84,15 +85,34 @@ def puntuar(
     return resultado
 
 
+UMBRAL_FORTALEZA = 65.0
+UMBRAL_DEBILIDAD = 50.0
+
+
 def fortalezas_y_debilidades(
-    fila: pd.Series, modelo: tuple[Dimension, ...], cantidad: int = 3
+    fila: pd.Series,
+    modelo: tuple[Dimension, ...],
+    referencia: Mapping[str, float] | None = None,
+    cantidad: int = 3,
 ) -> tuple[list[str], list[str]]:
-    """Dimensiones más altas (≥ 65) y más bajas (< 50) de un lugar, por nombre."""
+    """Fortalezas (≥ 65 y sobre lo habitual) y debilidades (< 50) de un lugar, por nombre.
+
+    Con `referencia` (la mediana de cada dimensión en la RM) se ordena por cuánto se
+    distingue el lugar, no por el valor absoluto: un 100 en una dimensión donde casi todos
+    tienen 100 no es una fortaleza que valga la pena contar.
+    """
     nombres = {d.id: d.nombre for d in modelo}
-    valores = pd.Series({d.id: fila[d.id] for d in modelo}).dropna().sort_values()
-    fuertes = [nombres[str(i)] for i, v in valores[::-1].items() if v >= 65][:cantidad]
-    debiles = [nombres[str(i)] for i, v in valores.items() if v < 50][:cantidad]
-    return fuertes, debiles
+    base = referencia or {}
+    valores = {d.id: float(fila[d.id]) for d in modelo if pd.notna(fila[d.id])}
+    diferencia = {i: v - base.get(i, 50.0) for i, v in valores.items()}
+    fuertes = sorted(
+        (i for i, v in valores.items() if v >= UMBRAL_FORTALEZA and diferencia[i] > 0),
+        key=lambda i: -diferencia[i],
+    )
+    debiles = sorted(
+        (i for i, v in valores.items() if v < UMBRAL_DEBILIDAD), key=lambda i: diferencia[i]
+    )
+    return [nombres[i] for i in fuertes[:cantidad]], [nombres[i] for i in debiles[:cantidad]]
 
 
 def percentil_en_grupo(puntajes: pd.Series, grupos: pd.Series, pesos: pd.Series) -> pd.Series:

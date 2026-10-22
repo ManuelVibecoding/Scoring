@@ -1,0 +1,86 @@
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: var(--alto-barra) 1fr;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: var(--e-6);
+  padding: 0 var(--e-5);
+  border-bottom: var(--filete);
+  background: var(--papel);
+  z-index: 5;
+}
+
+.marca {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-3);
+  font-size: var(--t-medio);
+  font-weight: var(--peso-fuerte);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.marca::before {
+  content: "";
+  align-self: center;
+  width: 12px;
+  height: 12px;
+  background: var(--senal);
+}
+
+.marca-sub {
+  font-size: var(--t-chico);
+  font-weight: var(--peso-normal);
+  color: var(--tinta-3);
+  letter-spacing: 0;
+}
+
+.contenido {
+  display: grid;
+  grid-template-columns: 1fr var(--ancho-panel);
+  min-height: 0;
+}
+
+.zona-mapa {
+  position: relative;
+  min-height: 0;
+}
+
+.aviso-carga {
+  position: absolute;
+  top: var(--e-4);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--e-2) var(--e-4);
+  background: var(--papel);
+  border-top: var(--filete);
+  font-size: var(--t-chico);
+}
+
+@media (max-width: 760px) {
+  .barra {
+    gap: var(--e-4);
+    padding: 0 var(--e-4);
+  }
+
+  .marca-sub {
+    display: none;
+  }
+
+  .contenido {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .contenido .panel {
+    max-height: 22vh;
+  }
+
+  .contenido.con-punto .panel {
+    max-height: 62vh;
+  }
+}

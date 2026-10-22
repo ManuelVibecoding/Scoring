@@ -1,0 +1,307 @@
+.panel {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--e-5) var(--e-5) var(--e-7);
+  background: var(--papel);
+  border-left: var(--filete);
+}
+
+.panel-cerrar {
+  position: absolute;
+  top: var(--e-3);
+  right: var(--e-3);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: var(--t-grande);
+  line-height: 1;
+}
+
+/* ---------- Estado vacío ---------- */
+.panel-vacio {
+  display: grid;
+  gap: var(--e-3);
+  padding-top: var(--e-6);
+  border-top: var(--filete);
+  color: var(--tinta-2);
+}
+
+.panel-vacio-titulo {
+  font-size: var(--t-grande);
+  font-weight: var(--peso-medio);
+  color: var(--tinta);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Cabecera ---------- */
+.panel-cabecera {
+  display: grid;
+  gap: var(--e-2);
+  padding-right: var(--e-6);
+}
+
+.panel-cifra {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-2);
+  margin-top: var(--e-1);
+}
+
+.panel-numero {
+  font-size: var(--t-cifra);
+  font-weight: var(--peso-medio);
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+}
+
+.panel-letra {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: var(--e-1);
+  background: var(--senal);
+  color: var(--papel);
+  font-size: var(--t-medio);
+  font-weight: var(--peso-fuerte);
+}
+
+.panel-veredicto {
+  font-size: var(--t-medio);
+  line-height: 1.35;
+}
+
+.panel-percentiles,
+.panel-coordenadas,
+.panel-fuente,
+.panel-nota {
+  font-size: var(--t-chico);
+  color: var(--tinta-2);
+}
+
+.panel-coordenadas,
+.panel-fuente {
+  color: var(--tinta-3);
+}
+
+.panel-nota-error {
+  color: var(--senal);
+}
+
+.panel-cargando {
+  padding-top: var(--e-6);
+}
+
+.panel-acciones {
+  margin: var(--e-5) 0 var(--e-2);
+}
+
+/* ---------- Secciones ---------- */
+.panel-seccion {
+  display: grid;
+  gap: var(--e-3);
+  margin-top: var(--e-6);
+  padding-top: var(--e-2);
+  border-top: var(--filete);
+}
+
+/* ---------- Dimensiones ---------- */
+.dimensiones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dimension-fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: var(--e-1);
+  width: 100%;
+  padding: var(--e-2) 0;
+  border: none;
+  border-bottom: var(--filete-fino);
+  background: transparent;
+  text-align: left;
+}
+
+.dimension-nombre {
+  font-size: var(--t-base);
+}
+
+.dimension-nivel {
+  margin-left: var(--e-2);
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-3);
+}
+
+.dimension-valor {
+  font-weight: var(--peso-medio);
+}
+
+.dimension-barra {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: var(--linea);
+}
+
+.dimension-barra span {
+  display: block;
+  height: 100%;
+  background: var(--tinta);
+}
+
+.dimension-debil .dimension-valor {
+  color: var(--senal);
+}
+
+.dimension-debil .dimension-barra span {
+  background: var(--senal);
+}
+
+.dimension-detalle {
+  margin: 0;
+  padding: var(--e-2) 0 var(--e-3);
+  display: grid;
+  gap: var(--e-1);
+  font-size: var(--t-chico);
+}
+
+.dimension-detalle div,
+.datos div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-4);
+}
+
+.dimension-detalle dt {
+  color: var(--tinta-2);
+}
+
+.dimension-detalle dd,
+.datos dd {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dimension-peso {
+  color: var(--tinta-3);
+}
+
+/* ---------- Barrio y cifras ---------- */
+.barrio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--e-3);
+}
+
+.barrio div {
+  display: grid;
+  gap: var(--e-1);
+  padding-top: var(--e-2);
+  border-top: var(--filete);
+}
+
+.barrio-cifra {
+  font-size: var(--t-grande);
+  font-weight: var(--peso-medio);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.barrio-texto {
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-2);
+  line-height: 1.3;
+}
+
+/* ---------- Tablas ---------- */
+.cercanias {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-chico);
+}
+
+.cercanias caption {
+  text-align: left;
+  padding: var(--e-3) 0 var(--e-1);
+  font-weight: var(--peso-medio);
+}
+
+.cercanias th,
+.cercanias td {
+  padding: var(--e-1) 0;
+  border-bottom: var(--filete-fino);
+  vertical-align: top;
+}
+
+.cercanias th {
+  font-weight: var(--peso-normal);
+  text-align: left;
+  width: 32%;
+}
+
+.cercanias-lugar {
+  color: var(--tinta-3);
+  padding-right: var(--e-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  white-space: nowrap;
+}
+
+.cercanias-minutos {
+  text-align: right;
+  white-space: nowrap;
+  font-weight: var(--peso-medio);
+  width: 72px;
+}
+
+.datos {
+  margin: 0;
+  display: grid;
+  font-size: var(--t-chico);
+}
+
+.datos div {
+  padding: var(--e-1) 0;
+  border-bottom: var(--filete-fino);
+}
+
+.datos dt {
+  color: var(--tinta-2);
+}
+
+.avisos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--t-chico);
+}
+
+.avisos li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-3);
+  padding: var(--e-1) 0;
+  border-bottom: var(--filete-fino);
+}
+
+.avisos span {
+  color: var(--tinta-3);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .panel {
+    border-left: none;
+    border-top: var(--filete);
+    padding: var(--e-4) var(--e-4) var(--e-6);
+  }
+
+  .panel-numero {
+    font-size: 4rem;
+  }
+}
