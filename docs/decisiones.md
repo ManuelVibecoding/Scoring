@@ -51,8 +51,10 @@ y con el tiempo da historial de precios.
 es viable y la espera es aceptable para el usuario (hasta ~1 minuto).
 **Límites:** ritmo moderado de consultas; si un portal bloquea con captcha no se evade,
 se usa el otro portal o el precio de referencia.
-**Por investigar en Fase 1:** si los portales tienen búsqueda por mapa (rectángulo de
-coordenadas) que devuelva avisos con ubicación en una sola consulta.
+**Resultado de la prueba (2026-10-22):** Toc Toc entrega coordenadas en la búsqueda por
+comuna y 260 avisos por página (~20 s por comuna); será la fuente principal. Portal
+Inmobiliario no trae coordenadas en la búsqueda y queda como complemento. Detalle en
+[factibilidad-scraping.md](factibilidad-scraping.md).
 
 ## D-007 · Arquitectura en capas (estilo Cosmic Python)
 **Fecha:** 2026-10-22
