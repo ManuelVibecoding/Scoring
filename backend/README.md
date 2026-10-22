@@ -22,4 +22,9 @@ uv sync                 # instala dependencias
 uv run pytest           # pruebas
 uv run ruff check .     # estilo
 uv run mypy             # tipos
+
+uv run score datos listar                       # fuentes registradas
+uv run score datos descargar                    # baja las fuentes livianas a data/raw
+uv run score datos descargar --incluir-pesadas  # también OSM y ruido (~570 MB)
+uv run score comunas                            # fichas de las 52 comunas
 ```

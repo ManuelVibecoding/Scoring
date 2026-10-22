@@ -1,94 +1,51 @@
 # Catálogo de fuentes de datos
 
-Primera versión: 2026-10-22. Se actualiza a medida que cada fuente se descarga y revisa.
+Actualizado: 2026-10-22. Las fuentes **descargadas** están registradas en
+`backend/src/score/pipeline/fuentes.py` y se bajan con `uv run score datos descargar`
+(las pesadas con `--incluir-pesadas`). Cada carpeta de `data/raw/` tiene un
+`_manifiesto.json` con URL, fecha, tamaño y sha256 de cada archivo.
 
 **Estado:**
-- **Confirmada:** se verificó que existe, con formato y fecha conocidos.
-- **Parcial:** existe, pero falta confirmar la descarga, la vigencia o la granularidad.
-- **Por verificar:** fuente conocida, aún no revisada en esta fase.
+- **Descargada:** en `data/raw/`, con manifiesto.
+- **Confirmada:** existe y se sabe cómo obtenerla, pero aún no se descarga.
+- **Bloqueada:** el sitio rechaza el acceso o no publica los datos.
+- **Por verificar:** fuente conocida, aún no revisada.
 
-## Base cartográfica
+## Descargadas
 
-| Fuente | Qué aporta | Granularidad | Formato | Estado | Notas |
+| ID | Fuente | Qué aporta | Granularidad | Tamaño | Notas |
 |---|---|---|---|---|---|
-| Censo 2024 (INE): cartografía y base manzana–entidad | Límites de manzanas, zonas y comunas; 189 variables de personas, hogares y viviendas | Manzana | GeoParquet | **Confirmada** | Publicada en diciembre de 2025 ([INE](https://www.ine.gob.cl/sala-de-prensa/prensa/general/noticia/2025/12/04/ine-publica-base-de-datos-del-censo-de-poblaci%C3%B3n-y-vivienda-2024), [ejemplo de uso](https://github.com/bastianolea/censo_2024_mapas)) |
-| OpenStreetMap (extracto Chile, Geofabrik) | Calles, red peatonal, puntos de interés, parques, autopistas y accesos | Punto / línea | PBF | Por verificar | Base de casi todas las cercanías |
-| Límites comunales (BCN / IDE Chile) | Respaldo de los límites de las 52 comunas | Comuna | Shapefile | Por verificar | El Censo 2024 probablemente basta |
-
-## Seguridad
-
-| Fuente | Qué aporta | Granularidad | Estado | Notas |
-|---|---|---|---|---|
-| CEAD (Subsecretaría de Prevención del Delito) | Casos policiales por delito, tasas por 100 mil hab. | Comuna, anual / trimestral | **Parcial** | Nivel comunal confirmado; los datos de 2024 se publicaron en abril de 2025. Falta confirmar la vía de descarga y si 2025 ya está ([ChileAtiende](https://www.chileatiende.gob.cl/fichas/114579-centro-de-estudios-y-analisis-del-delito-cead)) |
-| ENUSC (INE) | Victimización y percepción de inseguridad | Comuna (muestra) | Por verificar | |
-| Informe Nacional de Homicidios | Homicidios por comuna | Comuna | Por verificar | |
-| Comisarías, PDI | Ubicación | Punto | Por verificar | OSM como primera opción |
-
-## Socioeconómico y calidad de vida
-
-| Fuente | Qué aporta | Granularidad | Estado | Notas |
-|---|---|---|---|---|
-| Censo 2024 (INE) | Escolaridad, hacinamiento, edad, densidad, materialidad | Manzana | **Confirmada** | Permite calcular un índice tipo ISMT actualizado a 2024 |
-| ISMT (Observatorio de Ciudades UC) | Índice socio-material | Manzana | **Parcial** | Basado en Censo 2017; existe paquete R `ismtchile` con la metodología ([CRAN](https://rdrr.io/cran/ismtchile/)). Propuesta: recalcularlo con el Censo 2024 |
-| CASEN 2022, estimaciones SAE | Pobreza por ingresos y multidimensional | Comuna | **Confirmada** | [Resultados SAE 2022 (MDSF)](https://bid-ckan.ministeriodesarrollosocial.gob.cl:443/dataset/20ec8eff-15c2-4645-8687-90221be9e3c5/resource/5a96048a-afaf-4082-8016-af46689f4e74/download/resultados_estimaciones_sae_2022.pdf) |
-| ICVU 2025 (CChC + IEUT UC) | Índice de calidad de vida urbana, 6 dimensiones | Comuna (99 comunas del país; 42 de la RM) | **Confirmada** | [Informe ICVU 2025](https://estudiosurbanos.uc.cl/wp-content/uploads/2026/07/DOCUMENTO-ICVU-2025-1.pdf). No cubre las 52 comunas: faltan las rurales |
-| SINIM (SUBDERE) | Ingresos propios, presupuesto por habitante, áreas verdes | Comuna, anual | **Parcial** | Exporta a Excel desde datos.sinim.gov.cl; falta confirmar el último año disponible |
-| AIM, grupos socioeconómicos | Distribución ABC1 a E | Comuna | Por verificar | |
-| Catastro de campamentos (MINVU / TECHO) | Ubicación de campamentos | Punto / polígono | Por verificar | |
+| `censo2024_cartografia_rm` | INE, Censo 2024 | Polígonos de manzanas, zonas, comunas, límite urbano; las manzanas traen 190 variables censales | Manzana | 64 MB | GeoParquet, bucket público del INE. 66.873 manzanas en la RM |
+| `censo2024_manzana_entidad` | INE, Censo 2024 | Base manzana–entidad completa, con filas "contenedor comunal" | Manzana | 26 MB | Suma exacta de la RM: 7.400.741 personas |
+| `minsal_establecimientos` | IDE-Minsal | 1.070 establecimientos de salud en la RM, con tipo, urgencia y nivel | Punto | 1 MB | Vigentes al 12-06-2026 |
+| `dtpm_gtfs` | DTPM | Buses RED, Metro, EFE; 12.223 paraderos y 126 estaciones de Metro en la RM | Punto / línea | 13 MB | Vigente desde el 03-10-2026. No incluye buses rurales |
+| `osm_chile` | Geofabrik / OSM | Calles, comercio, parques, autopistas | Punto / línea | 350 MB | Para la Fase 2 (cercanías) |
+| `mineduc_directorio` | Mineduc | 3.237 establecimientos en funcionamiento en la RM, con dependencia, matrícula y coordenadas | Punto | 1 MB | Directorio 2025. Reemplaza las capas de 2021 |
+| `cead_delitos` | CEAD (extracción comunitaria) | Casos policiales mensuales por comuna y 30 tipos de delito, 2010 – dic. 2025 | Comuna | 2 MB | El sitio oficial del CEAD respondía 502 al revisarlo; se usa el extracto de [bastianolea/delincuencia_chile](https://github.com/bastianolea/delincuencia_chile) |
+| `mma_ruido` | Ministerio del Medio Ambiente | Mapa de ruido 2023, 35 comunas | Superficie | 220 MB | Para la Fase 2 |
+| `casen_pobreza_comunal` | MDSF (BIDAT) | Pobreza por ingresos, multidimensional e inseguridad alimentaria 2024 | Comuna | <1 MB | Estimaciones SAE con Casen 2024 y Censo 2024 (publicadas en abril de 2026). Más nuevas que las de 2022 previstas |
+| `icvu` | CChC + IEUT UC | Nivel ICVU 2025 (Alto, Medio alto, Medio bajo, Bajo) | Comuna (42 de la RM) | 2 MB | El informe publica niveles, no puntajes numéricos |
 
 ## Precios
 
-| Fuente | Qué aporta | Estado | Notas |
+| Fuente | Estado | Notas |
+|---|---|---|
+| Toc Toc | **Confirmada** | Scraping bajo demanda; ver [factibilidad-scraping.md](factibilidad-scraping.md) |
+| Portal Inmobiliario | **Confirmada** | Complemento, sin coordenadas en la búsqueda |
+| Informes públicos (CChC, GlobalProperty, Banco Central) | Por verificar | Respaldo comunal |
+| SII, avalúo fiscal | Por verificar | |
+
+## Bloqueadas o postergadas
+
+| Fuente | Estado | Qué pasó | Alternativa |
 |---|---|---|---|
-| Toc Toc | Avisos con precio UF/CLP, m², dormitorios, baños, coordenadas | **Confirmada** | Fuente principal. Ver [factibilidad-scraping.md](factibilidad-scraping.md) |
-| Portal Inmobiliario | Avisos con precio, sin coordenadas en la búsqueda | **Confirmada** | Complemento para medianas comunales |
-| Informes públicos (CChC, GlobalProperty, índice Banco Central) | Precio de referencia comunal | Por verificar | Respaldo cuando no hay scraping |
-| SII, avalúo fiscal | Valor de suelo por predio | Por verificar | Falta confirmar si se puede descargar masivamente |
+| SINIM (ingresos municipales, áreas verdes por habitante) | **Bloqueada** | sinim.gov.cl y datos.sinim.gov.cl responden 403, también desde el navegador | Bajarlo a mano desde otra red, o reemplazar áreas verdes por OSM + vegetación satelital |
+| SIMCE y categoría de desempeño (Agencia de Calidad) | **Postergada** | El portal público solo muestra categorías hasta 2019 y la API no lista archivos | Revisar en la Fase 2; por ahora los colegios se cuentan sin ponderar por calidad |
+| Farmacias (Minsal) | **Postergada** | No hay API pública documentada | OSM (`amenity=pharmacy`) |
+| CEAD oficial | **Caída** | 502 al revisarlo | Extracto comunitario (ver arriba) |
 
-## Servicios
+## Por verificar (Fase 2)
 
-| Fuente | Qué aporta | Granularidad | Estado | Notas |
-|---|---|---|---|---|
-| IDE-Minsal | 5.295 establecimientos de salud vigentes (CESFAM, SAPU, SAR, hospitales, clínicas), con dependencia y tipo de atención | Punto | **Confirmada** | Shapefile WGS84, versión del 12-06-2026 ([geoportal](https://www.minsal.cl/ide-minsal-geoportal-descarga-de-datos/)) |
-| Mineduc, capas de establecimientos | Colegios y jardines (incluye JUNJI e Integra) | Punto | **Parcial** | Capas ArcGIS con corte a 2021; hay que buscar una versión más reciente o actualizar con el directorio oficial |
-| Agencia de Calidad de la Educación | SIMCE y categoría de desempeño (alto, medio, medio-bajo, insuficiente) | Colegio (RBD) | **Parcial** | Tiene bases descargables; falta ubicar el enlace vigente |
-| DEMRE | Resultados PAES por colegio | Colegio | Por verificar | |
-| Farmacias (Minsal) | Ubicación y farmacias de turno | Punto | **Parcial** | No hay API pública documentada; el buscador oficial está en seremienlinea.minsal.cl. Alternativa: OSM |
-| OSM | Supermercados, malls, bancos, cajeros, bomberos, ferias, comercio | Punto | Por verificar | Validar cobertura de supermercados por cadena |
-
-## Transporte y conectividad
-
-| Fuente | Qué aporta | Estado | Notas |
-|---|---|---|---|
-| GTFS DTPM | Buses RED, Metro, EFE y bus al aeropuerto (425 rutas), con horarios | **Confirmada** | Vigente del 25-04-2026 al 31-12-2026 ([MobilityData](https://mobilitydatabase.org/feeds/gtfs/mdb-3357)); confirmar la URL en dtpm.cl |
-| OSM | Autopistas, accesos, avenidas troncales, ciclovías | Por verificar | |
-| Proyectos futuros (Metro L7, L8, L9; trenes; autopistas) | Trazados y fechas | Por verificar | |
-
-## Medio ambiente y riesgos
-
-| Fuente | Qué aporta | Estado | Notas |
-|---|---|---|---|
-| Mapa de ruido del Gran Santiago (MMA) | Niveles de ruido día y noche | **Parcial** | Actualización con datos 2023, presentada en abril de 2024; cubre 35 comunas urbanas ([minuta MMA](https://ruido.mma.gob.cl/wp-content/uploads/2024/04/Minuta_Mapa_de_Ruido_Gran_Santiago_DRLO_MMA_2024.pdf)). Falta encontrar los archivos geográficos |
-| Sentinel-2 | Vegetación (NDVI) | Por verificar | Imágenes gratuitas (Copernicus) |
-| Landsat | Temperatura de superficie (islas de calor) | Por verificar | |
-| SINCA | Calidad del aire | Por verificar | |
-| SERNAGEOMIN / PRMS | Inundación, remoción en masa, Falla San Ramón | Por verificar | |
-
-## Hallazgos importantes de esta primera revisión
-
-1. **El Censo 2024 por manzana ya existe** (diciembre de 2025). Es la base más fina y actual
-   para lo socioeconómico; permite calcular un índice tipo ISMT con datos de 2024 en vez de 2017.
-2. **Las fuentes comunales no cubren las 52 comunas por igual:** el ICVU incluye solo 42
-   de la RM y el mapa de ruido 35. Las comunas rurales tendrán que marcarse como "sin dato"
-   en esas dimensiones, sin penalizarlas.
-3. **Toc Toc entrega coordenadas exactas**, lo que permite precios comparables por cercanía
-   real y no solo por comuna.
-4. **Los establecimientos educacionales con coordenadas tienen corte a 2021**: hay que
-   buscar una versión más reciente.
-
-## Próximos pasos de la Fase 1
-
-- Confirmar las fuentes en estado **Parcial**: CEAD, SINIM, Mineduc, Agencia de Calidad, mapa de ruido.
-- Revisar las fuentes **Por verificar**.
-- Descargar las fuentes confirmadas a `data/raw/` con un trabajo del pipeline por fuente.
-- Armar la ficha de las 52 comunas con los indicadores comunales.
+ENUSC, Informe Nacional de Homicidios, AIM (grupos socioeconómicos), catastro de
+campamentos, Sentinel-2 (vegetación), Landsat (islas de calor), SINCA (aire),
+SERNAGEOMIN / PRMS (riesgos), proyectos futuros de Metro y autopistas.

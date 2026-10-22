@@ -10,6 +10,19 @@ comuna, los arriendos comparables de la zona y una ficha exportable para present
 - [Decisiones](docs/decisiones.md): registro de decisiones tomadas y por qué.
 - [Diseño](docs/diseno.md): dirección visual, principios y lo que está prohibido.
 
+- [Catálogo de datos](docs/catalogo-datos.md): fuentes, estado y procedencia.
+- [Fichas de las 52 comunas](docs/fichas-comunas.md): indicadores comunales generados.
+
 ## Estado
 
-Fase 1 (investigación y catálogo de datos) — por comenzar.
+Fase 1 (investigación y datos): 10 fuentes descargadas con el pipeline y fichas de las
+52 comunas generadas. Pendiente: SINIM (bloqueado), SIMCE y fuentes ambientales.
+
+## Reproducir los datos
+
+```bash
+cd backend
+uv sync
+uv run score datos descargar --incluir-pesadas
+uv run score comunas
+```

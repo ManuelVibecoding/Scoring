@@ -82,3 +82,25 @@ abierto en la misma carpeta para leer el código. Python lo administra `uv`.
 tipografía sale de tokens CSS.
 **Por qué:** el usuario quiere un producto elegante que no se note hecho 100% con Claude.
 **Dirección elegida:** C · Suizo minimal (blanco, negro, rojo señal `#E2231A`, tipografía Archivo).
+
+## D-010 · Delitos: extracto comunitario del CEAD mientras el oficial no esté disponible
+**Fecha:** 2026-10-22
+**Decisión:** los casos policiales se toman del Parquet que mantiene el proyecto
+bastianolea/delincuencia_chile (extraído del CEAD, hasta diciembre de 2025).
+**Por qué:** el sitio del CEAD respondía 502 y no ofrece descarga masiva; el extracto
+cubre las 52 comunas y los 30 tipos de delito.
+**Cómo revertir:** cambiar los recursos de la fuente `cead_delitos` en `fuentes.py`.
+
+## D-011 · Indicadores comunales del censo desde la base CSV, no desde la cartografía
+**Fecha:** 2026-10-22
+**Decisión:** las fichas comunales suman la base manzana–entidad (CSV) incluyendo las
+filas "contenedor comunal". La cartografía por manzana se usa solo para análisis espacial.
+**Por qué:** el INE reserva datos de manzanas pequeñas; la cartografía suma 7,06 millones
+de personas en la RM y el CSV con contenedores suma 7.400.741, el total oficial.
+
+## D-012 · Las tasas de delitos se calculan por residente
+**Fecha:** 2026-10-22
+**Decisión:** por ahora las tasas se dividen por la población del Censo 2024. Santiago,
+Providencia y Estación Central aparecen infladas por población flotante.
+**Pendiente (Fase 3):** corregir con un indicador de población flotante (por ejemplo,
+viajes atraídos según la Encuesta Origen-Destino) antes de usarlas en el puntaje.

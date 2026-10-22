@@ -4,11 +4,22 @@ version = "0.1.0"
 description = "Scoring de ubicaciones habitacionales en la Región Metropolitana"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "duckdb>=2.0.0",
+    "httpx>=0.28.1",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.0",
+    "pdfplumber>=0.11.10",
+    "pyarrow>=26.0.0",
+]
+
+[project.scripts]
+score = "score.entrypoints.cli:main"
 
 [dependency-groups]
 dev = [
     "mypy>=1.13",
+    "pandas-stubs>=3.0.5.260914",
     "pytest>=8.3",
     "ruff>=0.8",
 ]
@@ -27,12 +38,18 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
+# El texto en español usa guiones largos y tildes a propósito.
+ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 mypy_path = "src"
 packages = ["score"]
+
+[[tool.mypy.overrides]]
+module = ["pdfplumber.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
