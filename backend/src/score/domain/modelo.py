@@ -1,4 +1,4 @@
-"""Configuración del modelo de puntaje v1: dimensiones, indicadores, umbrales y pesos.
+"""Configuración del modelo de puntaje v1.1: dimensiones, indicadores, umbrales y pesos.
 
 Cambiar un peso o un umbral es cambiar este archivo; el resto del código no se toca.
 Los umbrales en minutos se eligieron con criterios de "ciudad de 15 minutos" y
@@ -9,7 +9,7 @@ estándares del SIEDU, y se revisaron contra lugares conocidos y precios de arri
 from score.domain.escalas import PorCantidad, PorDistanciaMinima, PorMinutos, PorPercentil
 from score.domain.puntaje import Dimension, Indicador, Nivel
 
-VERSION = "v1"
+VERSION = "v1.1"
 
 SEGURIDAD = Dimension(
     id="seguridad",
@@ -20,28 +20,26 @@ SEGURIDAD = Dimension(
         # Los homicidios casi no tienen subdenuncia: es el dato policial más confiable.
         Indicador(
             "tasa_homicidios_100k_3a",
-            0.30,
+            0.50,
             PorPercentil(mayor_es_mejor=False),
             "Homicidios por 100 mil habitantes, promedio de 3 años (CEAD)",
         ),
-        Indicador(
-            "tasa_delitos_violentos_100k",
-            0.30,
-            PorPercentil(mayor_es_mejor=False),
-            "Robos con violencia, por sorpresa, de vehículo con violencia y homicidios",
-        ),
-        Indicador(
-            "tasa_delitos_armas_100k",
-            0.15,
-            PorPercentil(mayor_es_mejor=False),
-            "Delitos de la ley de armas por 100 mil habitantes",
-        ),
-        # El robo en vivienda se denuncia más en comunas de mayores ingresos: pesa menos.
+        # Ocurre donde vive la gente: es el delito que más habla de la comuna como lugar
+        # para vivir.
         Indicador(
             "robo_vivienda_por_1000_hogares",
-            0.25,
+            0.30,
             PorPercentil(mayor_es_mejor=False),
             "Robos en lugar habitado por cada 1.000 hogares (CEAD)",
+        ),
+        # Ocurren donde la gente trabaja y compra, pero se dividen por los residentes:
+        # inflan a las comunas centrales. Pesan poco. Ley de armas no entra: mide más la
+        # actividad policial que el riesgo (D-028).
+        Indicador(
+            "tasa_delitos_violentos_100k",
+            0.20,
+            PorPercentil(mayor_es_mejor=False),
+            "Robos con violencia, por sorpresa, de vehículo con violencia y homicidios",
         ),
     ),
 )
@@ -149,7 +147,7 @@ AREAS_VERDES = Dimension(
 
 ENTORNO = Dimension(
     id="entorno",
-    nombre="Tranquilidad del entorno",
+    nombre="Ruido y molestias",
     peso=10,
     nivel=Nivel.PUNTO,
     indicadores=(

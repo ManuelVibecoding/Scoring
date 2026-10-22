@@ -31,7 +31,8 @@ const DATOS_COMUNA: { etiqueta: string; sentido: Sentido }[] = [
   { etiqueta: "Homicidios", sentido: "menor" },
   { etiqueta: "Pobreza por ingresos", sentido: "menor" },
   { etiqueta: "Escolaridad promedio", sentido: "mayor" },
-  { etiqueta: "Delitos de mayor connotación", sentido: "menor" },
+  // Se dividen por residentes pero ocurren donde la gente trabaja y compra (D-028): no se marcan.
+  { etiqueta: "Delitos de mayor connotación", sentido: "neutro" },
 ];
 
 function numeroOnulo(valor: number | string | null | undefined): number | null {

@@ -223,3 +223,17 @@ denso. El límite de área mantiene la respuesta rápida.
 **Decisión:** se guardan hasta 3 puntos y se comparan en una tabla con el mejor valor de
 cada fila en rojo. Los arriendos no se marcan: más caro no es mejor ni peor.
 **Por qué:** más de tres columnas no caben a lo ancho de la pantalla de un notebook.
+
+## D-028 · Seguridad v1.1: homicidios pesan la mitad, sin ley de armas
+**Fecha:** 2026-10-22
+**Decisión:** la seguridad pasa a ser homicidios (0,50), robo en vivienda por hogar (0,30)
+y robos violentos (0,20). Se quita la ley de armas. La dimensión "Tranquilidad del
+entorno" se renombra "Ruido y molestias". El modelo pasa a v1.1. Reemplaza la
+ponderación de D-017.
+**Por qué:** con la v1, Providencia (48) quedaba bajo Puente Alto (53) aunque tiene un
+cuarto de sus homicidios. Los robos violentos y la ley de armas se dividen por residentes
+pero ocurren donde la gente trabaja y compra, y la ley de armas mide sobre todo controles
+policiales. Con el cambio, Providencia sube a 68 y Puente Alto baja a 47. La seguridad
+explica mejor el precio (ρ 0,57 → 0,62); el puntaje total queda igual por hexágono
+(0,61) y baja levemente por comuna (0,52 → 0,49) y contra el ICVU (0,66 → 0,65). El
+nombre anterior hacía pensar en delincuencia, que se mide en Seguridad.

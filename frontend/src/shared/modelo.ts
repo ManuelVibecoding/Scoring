@@ -13,7 +13,7 @@ export const DIMENSIONES: readonly DimensionModelo[] = [
   { id: "transporte", nombre: "Transporte público" },
   { id: "conectividad", nombre: "Conectividad vial" },
   { id: "areas_verdes", nombre: "Áreas verdes" },
-  { id: "entorno", nombre: "Tranquilidad del entorno" },
+  { id: "entorno", nombre: "Ruido y molestias" },
 ];
 
 export const LETRAS = ["A", "B", "C", "D", "E"] as const;

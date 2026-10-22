@@ -24,20 +24,20 @@ Resultado: `data/processed/puntajes.parquet`, un hexágono por fila.
 
 | Dimensión | Peso | Nivel | Indicadores (peso interno) |
 |---|---:|---|---|
-| Seguridad | 20 | Comuna | Homicidios por 100 mil, promedio de 3 años (0,30) · robos violentos por 100 mil (0,30) · ley de armas por 100 mil (0,15) · robo en vivienda por 1.000 hogares (0,25) |
+| Seguridad | 20 | Comuna | Homicidios por 100 mil, promedio de 3 años (0,50) · robo en vivienda por 1.000 hogares (0,30) · robos violentos por 100 mil (0,20) |
 | Entorno socioeconómico | 15 | Mixto | Escolaridad de adultos del hexágono (0,30) · hacinamiento del hexágono (0,20) · pobreza multidimensional comunal (0,25) · pobreza por ingresos comunal (0,25) |
 | Servicios cercanos | 20 | Punto | Supermercado 5→25 min (0,20) · farmacia 5→25 (0,10) · colegio 8→30 (0,15) · jardín 8→30 (0,10) · CESFAM 10→40 (0,10) · cajero 5→25 (0,05) · urgencia en auto 5→20 (0,15) · comercio de barrio a 800 m, satura en 40 (0,15) |
 | Transporte público | 15 | Punto | Metro 5→30 min (0,40) · paradero 3→15 (0,20) · recorridos a 400 m, satura en 20 (0,25) · buses por hora en punta, satura en 60 (0,15) |
 | Conectividad vial | 10 | Punto | Acceso a autopista en auto 3→15 min (0,5) · centro de empleo en auto 15→60 min (0,5) |
 | Áreas verdes | 10 | Punto | Plaza 3→15 min (0,5) · parque de más de 2 ha 8→30 min (0,5) |
-| Tranquilidad del entorno | 10 | Punto | Distancia a autopistas y troncales, 75 m → 800 m (0,6) · distancia a cárceles, vertederos y plantas de tratamiento, 300 m → 1.500 m (0,4) |
+| Ruido y molestias | 10 | Punto | Distancia a autopistas y troncales, 75 m → 800 m (0,6) · distancia a cárceles, vertederos y plantas de tratamiento, 300 m → 1.500 m (0,4) |
 | Proyección futura | — | — | Pendiente (sin datos de proyectos aún) |
 
 "5→25 min" significa: 100 puntos hasta 5 minutos y 0 desde 25.
 
 ## Calibración
 
-Se partió con los pesos del plan aprobado y umbrales de "ciudad de 15 minutos". Hubo dos
+Se partió con los pesos del plan aprobado y umbrales de "ciudad de 15 minutos". Hubo tres
 ajustes después de revisar los resultados:
 
 1. **Seguridad.** La primera versión usaba robo en vivienda y robos violentos, y dejaba a
@@ -46,9 +46,16 @@ ajustes después de revisar los resultados:
    comunas comerciales. Se agregaron los homicidios (casi sin subdenuncia, promediados en
    3 años) y los delitos con armas, y se bajó el peso del robo en vivienda. La coherencia
    con el ICVU subió de 0,62 a 0,66.
-2. **Tranquilidad del entorno.** Con un radio de 400 m la mediana era 100 y la dimensión
-   casi no distinguía lugares. Se amplió a 800 m, que es el alcance típico del ruido de
-   una autopista.
+2. **Ruido y molestias** (antes "Tranquilidad del entorno"). Con un radio de 400 m la
+   mediana era 100 y la dimensión casi no distinguía lugares. Se amplió a 800 m, que es el
+   alcance típico del ruido de una autopista. Se renombró porque el nombre anterior hacía
+   pensar en delincuencia, que se mide en Seguridad.
+3. **Seguridad, v1.1 (D-028).** Con la v1, Providencia (48) quedaba bajo Puente Alto (53)
+   aunque tiene un cuarto de sus homicidios. Los robos violentos y la ley de armas se
+   dividen por residentes pero ocurren donde la gente trabaja y compra, y la ley de armas
+   refleja sobre todo controles policiales. Se quitó la ley de armas y los homicidios
+   pasaron a pesar la mitad. Providencia sube a 68 y Puente Alto baja a 47; la seguridad
+   explica mejor el precio (0,57 → 0,62) y el puntaje total queda igual por hexágono.
 
 Los pesos de las dimensiones **no se ajustaron para maximizar la correlación con el
 precio**: el precio también mide prestigio y escasez, y eso no es lo mismo que calidad
@@ -57,9 +64,9 @@ para vivir.
 
 ## Validación
 
-Los resultados de esta sección se calcularon con una muestra de 5.933 avisos de arriendo
-de Toc Toc del 22-10-2026. Después de limpiar precios y superficies imposibles quedaron
-3.454 avisos.
+Los resultados de esta sección (modelo v1.1) se calcularon con la muestra de 14.317 avisos
+de arriendo de Toc Toc y Portal Inmobiliario del 22-10-2026. Después de dejar solo los
+bien ubicados y limpiar precios y superficies imposibles quedaron 11.440 avisos.
 
 Para cada aviso se descuenta lo que explica la propiedad (casa o departamento, tamaño,
 dormitorios) y queda un **premio de ubicación**: cuánto más (o menos) se paga por m² por
@@ -67,39 +74,44 @@ estar en ese lugar.
 
 | Prueba | Correlación (Spearman) |
 |---|---:|
-| Puntaje vs. premio de ubicación, por hexágono (302 con 3+ avisos) | **0,66** |
-| Puntaje vs. premio de ubicación, por comuna | **0,62** |
-| Puntaje comunal vs. nivel ICVU 2025 (42 comunas, índice independiente) | **0,66** |
+| Puntaje vs. premio de ubicación, por hexágono (914 con 3+ avisos) | **0,61** |
+| Puntaje vs. premio de ubicación, por comuna | **0,49** |
+| Puntaje comunal vs. nivel ICVU 2025 (42 comunas, índice independiente) | **0,65** |
+
+Con la v1 y la muestra anterior (solo Toc Toc, 302 hexágonos) las cifras eran 0,66, 0,62
+y 0,66. Con la muestra nueva la v1 daba 0,61, 0,52 y 0,66: la baja viene sobre todo de la
+muestra, que ahora cubre más comunas y barrios.
 
 **Sensibilidad a los pesos** (correlación con el premio por hexágono):
 
 | Ponderación | ρ |
 |---|---:|
-| v1 (pesos del plan) | **0,66** |
-| Pesos iguales | 0,62 |
-| Sin seguridad | 0,46 |
-| Solo dimensiones medidas en el punto | 0,15 |
+| v1.1 (pesos del plan) | **0,61** |
+| Pesos iguales | 0,58 |
+| Sin seguridad | 0,40 |
+| Solo dimensiones medidas en el punto | 0,13 |
 
 Los pesos del plan funcionan mejor que las alternativas. Lo que más explica el precio es
-el entorno socioeconómico (0,72) y la seguridad (0,56); servicios (0,25) y áreas verdes
-(0,19) aportan algo; transporte (0,01) y tranquilidad (−0,01) no se reflejan en el precio.
+el entorno socioeconómico (0,73) y la seguridad (0,62); servicios (0,20), conectividad
+(0,13) y áreas verdes (0,13) aportan algo; transporte (−0,04) y ruido (0,07) casi no se
+reflejan en el precio.
 
 **Lugares conocidos:**
 
 | Lugar | Puntaje | Letra | Lo más bajo |
 |---|---:|:---:|---|
 | Tobalaba (Providencia) | 92 | A | — |
+| Plaza Ñuñoa | 86 | A | Seguridad 69 |
 | Plaza de Maipú | 86 | A | Seguridad 64 |
-| Plaza Ñuñoa | 85 | A | Seguridad 63 |
 | Colón con Tomás Moro (Las Condes) | 83 | A | Áreas verdes 55 |
-| La Dehesa (Lo Barnechea) | 80 | B | Transporte 39 |
-| Plaza de Puente Alto | 79 | B | Socioeconómico 47 |
-| Plaza de Armas (Santiago) | 77 | B | Seguridad 36 |
-| Bajos de Mena (Puente Alto) | 63 | C | Socioeconómico 28 |
-| La Pintana centro | 59 | C | Socioeconómico 8 |
-| Melipilla centro | 49 | D | Transporte 0 |
+| La Dehesa (Lo Barnechea) | 80 | A | Transporte 39 |
+| Plaza de Puente Alto | 78 | B | Seguridad 47 |
+| Plaza de Armas (Santiago) | 77 | B | Seguridad 39 |
+| Bajos de Mena (Puente Alto) | 62 | C | Socioeconómico 28 |
+| La Pintana centro | 58 | C | Socioeconómico 8 |
+| Melipilla centro | 47 | D | Transporte 0 |
 
-**Distribución en la RM** (por población): A 8% · B 40% · C 41% · D 10% · E 2%.
+**Distribución en la RM** (por población): A 10% · B 38% · C 39% · D 11% · E 2%.
 
 ## Limitaciones conocidas
 

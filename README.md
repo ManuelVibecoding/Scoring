@@ -36,7 +36,7 @@ Luego abre http://localhost:5173 (los datos tienen que estar generados; ver más
 - **Fase 2 (cercanías):** 9.666 hexágonos con minutos a 20 tipos de lugares por la red
   de calles, conteos del barrio y oferta de buses.
 - **Fase 3 (puntaje):** modelo de 7 dimensiones, validado contra precios de arriendo
-  (ρ 0,66) y contra el ICVU (ρ 0,66).
+  (ρ 0,61 por hexágono, con 11.440 avisos) y contra el ICVU (ρ 0,65).
 - **Fase 4 (app):** mapa, búsqueda, panel al tocar un punto, arriendos bajo demanda y
   ficha exportable a PNG, PDF y PowerPoint.
 - **Fase 4b:** mapa de calles con capa de calor opcional, evaluación en el punto exacto,

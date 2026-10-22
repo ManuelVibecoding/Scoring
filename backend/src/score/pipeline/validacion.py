@@ -87,7 +87,7 @@ def ponderaciones_alternativas() -> dict[str, tuple[Dimension, ...]]:
         replace(d, peso=d.peso if d.id != "seguridad" else 0.0001) for d in MODELO
     )
     return {
-        "v1 (plan)": MODELO,
+        "v1.1 (actual)": MODELO,
         "pesos iguales": iguales,
         "solo dimensiones por punto": solo_punto,
         "sin seguridad": sin_seguridad,
