@@ -58,6 +58,16 @@ def _comunas(_: argparse.Namespace) -> int:
     return 0
 
 
+def _cercanias(_: argparse.Namespace) -> int:
+    from score.pipeline.cercanias import construir_cercanias
+
+    ruta = construir_cercanias(
+        config.DATOS_CRUDOS, config.DATOS_INTERMEDIOS, config.DATOS_PROCESADOS
+    )
+    print(f"Cercanías por hexágono: {ruta}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="score")
     sub = parser.add_subparsers(dest="comando", required=True)
@@ -76,6 +86,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub.add_parser("comunas", help="Construye las fichas de las 52 comunas").set_defaults(
         func=_comunas
     )
+
+    sub.add_parser(
+        "cercanias", help="Calcula cercanías por hexágono (red de calles + puntos de interés)"
+    ).set_defaults(func=_cercanias)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

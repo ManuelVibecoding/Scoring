@@ -13,7 +13,7 @@ import pandas as pd
 import pdfplumber
 
 from score import config
-from score.pipeline.extraccion import extraer
+from score.pipeline.extraccion import asegurar_extraido
 from score.pipeline.normalizacion import normalizar_nombre
 
 # Delitos de mayor connotación social según la clasificación del CEAD.
@@ -56,13 +56,6 @@ def _conexion() -> duckdb.DuckDBPyConnection:
     con = duckdb.connect()
     con.execute("INSTALL spatial; LOAD spatial;")
     return con
-
-
-def _asegurar_extraido(raw: Path, interim: Path, fuente: str, archivo: str) -> Path:
-    destino = interim / fuente
-    if not destino.exists() or not any(destino.iterdir()):
-        extraer(raw / fuente / archivo, destino)
-    return destino
 
 
 # ---------------------------------------------------------------- Censo 2024
@@ -349,17 +342,17 @@ def icvu(pdf: Path, nombres: pd.Series) -> pd.DataFrame:
 
 
 def construir_fichas(raw: Path, interim: Path, procesados: Path) -> Path:
-    cartografia = _asegurar_extraido(
+    cartografia = asegurar_extraido(
         raw, interim, "censo2024_cartografia_rm", "cartografia_censo2024_R13.zip"
     )
-    base_censo = _asegurar_extraido(
+    base_censo = asegurar_extraido(
         raw, interim, "censo2024_manzana_entidad", "Base_manzana_entidad_CPV24.zip"
     )
-    minsal = _asegurar_extraido(
+    minsal = asegurar_extraido(
         raw, interim, "minsal_establecimientos", "ESTABLECIMIENTOS_12062026_DES.zip"
     )
-    gtfs = _asegurar_extraido(raw, interim, "dtpm_gtfs", "GTFS_20261003.zip")
-    mineduc = _asegurar_extraido(
+    gtfs = asegurar_extraido(raw, interim, "dtpm_gtfs", "GTFS_20261003.zip")
+    mineduc = asegurar_extraido(
         raw, interim, "mineduc_directorio", "Directorio-Oficial-EE-2025.rar"
     )
     comunal = next(cartografia.glob("*_Comunal.parquet"))

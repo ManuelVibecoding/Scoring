@@ -6,11 +6,13 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "duckdb>=2.0.0",
+    "h3>=4.5.0",
     "httpx>=0.28.1",
     "openpyxl>=3.1.5",
     "pandas>=3.1.0",
     "pdfplumber>=0.11.10",
     "pyarrow>=26.0.0",
+    "scipy>=1.18.1",
 ]
 
 [project.scripts]
@@ -22,6 +24,7 @@ dev = [
     "pandas-stubs>=3.0.5.260914",
     "pytest>=8.3",
     "ruff>=0.8",
+    "scipy-stubs>=1.18.1.1",
 ]
 
 [build-system]
@@ -48,7 +51,7 @@ mypy_path = "src"
 packages = ["score"]
 
 [[tool.mypy.overrides]]
-module = ["pdfplumber.*"]
+module = ["pdfplumber.*", "h3.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

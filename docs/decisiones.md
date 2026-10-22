@@ -104,3 +104,24 @@ de personas en la RM y el CSV con contenedores suma 7.400.741, el total oficial.
 Providencia y Estación Central aparecen infladas por población flotante.
 **Pendiente (Fase 3):** corregir con un indicador de población flotante (por ejemplo,
 viajes atraídos según la Encuesta Origen-Destino) antes de usarlas en el puntaje.
+
+## D-013 · Grilla H3 de resolución 9 solo sobre zonas habitadas
+**Fecha:** 2026-10-22
+**Decisión:** las cercanías se precalculan en hexágonos H3 de resolución 9 que contienen
+al menos una manzana del Censo 2024 (9.666 hexágonos).
+**Por qué:** ~174 m de lado es menos de dos cuadras; el resultado es pequeño y la
+respuesta al tocar el mapa es instantánea. Fuera de las zonas habitadas no hay viviendas
+que evaluar.
+
+## D-014 · Distancias por la red de calles, con todo en DuckDB + scipy
+**Fecha:** 2026-10-22
+**Decisión:** OSM se lee directamente con DuckDB (ST_ReadOSM) y las distancias se
+calculan con un Dijkstra multi-fuente de scipy desde un nodo virtual por categoría.
+**Por qué:** sin herramientas externas (osmium, OSRM, servidores); todo el cálculo de la
+RM toma ~80 s y queda en Python, testeable.
+**Alternativa futura:** tiempos reales en auto con datos de congestión, si se consiguen.
+
+## D-015 · Emergencias se miden desde el servicio hacia la casa
+**Fecha:** 2026-10-22
+**Decisión:** bomberos y policía se miden como viaje cuartel → casa; urgencias,
+hospitales y autopistas como casa → lugar. En auto se respetan los sentidos de tránsito.
