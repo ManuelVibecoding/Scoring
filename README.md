@@ -13,14 +13,17 @@ comuna, los arriendos comparables de la zona y una ficha exportable para present
 - [Catálogo de datos](docs/catalogo-datos.md): fuentes, estado y procedencia.
 - [Fichas de las 52 comunas](docs/fichas-comunas.md): indicadores comunales generados.
 - [Cercanías por hexágono](docs/cercanias.md): método, columnas, validación y supuestos.
+- [Modelo de puntaje](docs/modelo-puntaje.md): dimensiones, pesos, calibración y validación.
 
 ## Estado
 
 - **Fase 1 (datos):** 10 fuentes descargadas con el pipeline y fichas de las 52 comunas.
 - **Fase 2 (cercanías):** 9.666 hexágonos con minutos a 20 tipos de lugares por la red
   de calles, conteos del barrio y oferta de buses.
-- **Pendiente:** SINIM (bloqueado), SIMCE, fuentes ambientales y de riesgo, y la Fase 3
-  (modelo de puntaje).
+- **Fase 3 (puntaje):** modelo de 7 dimensiones, validado contra precios de arriendo
+  (ρ 0,66) y contra el ICVU (ρ 0,66).
+- **Pendiente:** Fase 4 (app). Datos faltantes: SINIM (bloqueado), SIMCE, riesgos
+  naturales y proyección futura.
 
 ## Reproducir los datos
 
@@ -30,4 +33,7 @@ uv sync
 uv run score datos descargar --incluir-pesadas
 uv run score comunas
 uv run score cercanias
+uv run score puntajes
+uv run score precios     # muestra de arriendos (~10 min), solo para validar
+uv run score validar
 ```

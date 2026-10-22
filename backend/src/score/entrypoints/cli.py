@@ -68,6 +68,47 @@ def _cercanias(_: argparse.Namespace) -> int:
     return 0
 
 
+def _puntajes(_: argparse.Namespace) -> int:
+    from score.pipeline.puntajes import construir_puntajes
+
+    print(f"Puntajes por hexágono: {construir_puntajes(config.DATOS_PROCESADOS)}")
+    return 0
+
+
+def _precios(_: argparse.Namespace) -> int:
+    import pandas as pd
+
+    from score.adapters.toctoc import TocToc
+    from score.pipeline.precios import muestrear
+
+    comunas = pd.read_parquet(config.DATOS_PROCESADOS / "comunas.parquet")["comuna"].tolist()
+    with _cliente() as cliente:
+        ruta = muestrear(TocToc(cliente), comunas, config.DATOS_INTERMEDIOS / "avisos")
+    print(f"Muestra de avisos: {ruta}")
+    return 0
+
+
+def _validar(_: argparse.Namespace) -> int:
+    import json
+    from dataclasses import asdict
+
+    import pandas as pd
+
+    from score.pipeline.validacion import lugares_de_referencia, validar
+
+    datos = pd.read_parquet(config.DATOS_PROCESADOS / "puntajes.parquet").set_index("h3")
+    muestras = sorted((config.DATOS_INTERMEDIOS / "avisos").glob("toctoc_arriendo_*.parquet"))
+    if not muestras:
+        print("No hay muestra de avisos: corre primero `uv run score precios`.")
+        return 1
+    resultado, _comparados = validar(datos, pd.read_parquet(muestras[-1]))
+    salida = config.DATOS_PROCESADOS / "validacion.json"
+    salida.write_text(json.dumps(asdict(resultado), indent=2, ensure_ascii=False), "utf-8")
+    print(json.dumps(asdict(resultado), indent=2, ensure_ascii=False))
+    print(lugares_de_referencia(datos).to_string())
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="score")
     sub = parser.add_subparsers(dest="comando", required=True)
@@ -90,6 +131,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub.add_parser(
         "cercanias", help="Calcula cercanías por hexágono (red de calles + puntos de interés)"
     ).set_defaults(func=_cercanias)
+
+    sub.add_parser("puntajes", help="Aplica el modelo de puntaje a cada hexágono").set_defaults(
+        func=_puntajes
+    )
+
+    sub.add_parser(
+        "precios", help="Muestra de avisos de arriendo de la RM (Toc Toc), para validar"
+    ).set_defaults(func=_precios)
+
+    sub.add_parser(
+        "validar", help="Compara el puntaje con precios de arriendo y con el ICVU"
+    ).set_defaults(func=_validar)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

@@ -48,7 +48,11 @@ MEDIDAS: tuple[Medida, ...] = (
     Medida("bomberos", ("bomberos",), Modo.AUTO, hacia_los_puntos=False),
     Medida("policia", ("policia",), Modo.AUTO, hacia_los_puntos=False),
     Medida("acceso_autopista", ("acceso_autopista",), Modo.AUTO),
+    Medida("centro_empleo", ("centro_empleo",), Modo.AUTO),
 )
+
+# Distancia en línea recta (m) a lo que molesta por estar cerca, no por tener que ir.
+DESAMENIDADES: tuple[str, ...] = ("carcel", "vertedero", "planta_tratamiento")
 
 CONTEOS_800M: dict[str, tuple[str, ...]] = {
     "colegio": ("colegio",),
@@ -81,15 +85,30 @@ def _a_minutos(red: Red, costo: np.ndarray) -> np.ndarray:
     return np.where(minutos <= MINUTOS_MAXIMOS, minutos, np.nan)
 
 
+def _distancia_recta(hx: np.ndarray, hy: np.ndarray, puntos: pd.DataFrame) -> np.ndarray:
+    """Metros en línea recta al punto más cercano (infinito si no hay puntos)."""
+    if len(puntos) == 0:
+        return np.full(len(hx), np.inf)
+    arbol = cKDTree(np.column_stack(proyectar(puntos["lat"].to_numpy(), puntos["lon"].to_numpy())))
+    distancia, _ = arbol.query(np.column_stack([hx, hy]))
+    return np.asarray(distancia, dtype=float)
+
+
 def calcular(
     hexagonos: pd.DataFrame,
     puntos: pd.DataFrame,
     parques: pd.DataFrame,
+    vias_rapidas: pd.DataFrame,
     redes: dict[Modo, Red],
 ) -> pd.DataFrame:
     resultado = hexagonos.copy()
     hx, hy = proyectar(hexagonos["lat"].to_numpy(), hexagonos["lon"].to_numpy())
     ajustes = {modo: red.ajustar(hx, hy) for modo, red in redes.items()}
+
+    resultado["m_via_rapida"] = _distancia_recta(hx, hy, vias_rapidas).round()
+    resultado["m_desamenidad"] = _distancia_recta(
+        hx, hy, puntos[puntos["categoria"].isin(DESAMENIDADES)]
+    ).round()
 
     for medida in MEDIDAS:
         red = redes[medida.modo]
@@ -174,7 +193,8 @@ def construir_cercanias(raw: Path, interim: Path, procesados: Path) -> Path:
     )
     grilla = hx.grilla(next(cartografia.glob("*_Manzanas.parquet")))
     redes = {modo: construir_red(osm_rm, modo) for modo in Modo}
-    return guardar(calcular(grilla, puntos, parques, redes), puntos, procesados)
+    vias = pt.vias_rapidas(osm_rm)
+    return guardar(calcular(grilla, puntos, parques, vias, redes), puntos, procesados)
 
 
 def guardar(cercanias: pd.DataFrame, puntos: pd.DataFrame, procesados: Path) -> Path:

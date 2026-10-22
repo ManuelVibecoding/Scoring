@@ -35,7 +35,21 @@ _CATEGORIAS_OSM = {
     "cafe",
     "gimnasio",
     "universidad",
+    "carcel",
+    "vertedero",
+    "planta_tratamiento",
 }
+
+# Principales concentraciones de empleo de Santiago (centro aproximado de cada una).
+CENTROS_DE_EMPLEO: tuple[tuple[str, float, float], ...] = (
+    ("Santiago Centro", -33.4378, -70.6505),
+    ("Providencia", -33.4255, -70.6110),
+    ("El Golf / Sanhattan", -33.4150, -70.6000),
+    ("Ciudad Empresarial", -33.3920, -70.6180),
+)
+
+# Vías de tráfico pesado: su ruido es la principal fuente de contaminación acústica.
+VIAS_RAPIDAS = ("motorway", "trunk")
 
 
 def _segundos(columna: str) -> str:
@@ -214,6 +228,32 @@ def parques(osm_rm: Path) -> pd.DataFrame:
     return df[["parque", "categoria", "nombre", "superficie_m2", "lats", "lons"]]
 
 
+def centros_de_empleo() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"categoria": "centro_empleo", "nombre": n, "lat": lat, "lon": lon, "fuente": "Score"}
+            for n, lat, lon in CENTROS_DE_EMPLEO
+        ]
+    )
+
+
+def vias_rapidas(osm_rm: Path) -> pd.DataFrame:
+    """Nodos de autopistas y vías troncales (para medir la exposición al ruido de tráfico)."""
+    tipos = ", ".join(f"'{t}'" for t in VIAS_RAPIDAS)
+    return (
+        duckdb.connect()
+        .execute(
+            f"""
+            SELECT DISTINCT n.lat, n.lon
+            FROM '{(osm_rm / "vias.parquet").as_posix()}' v, UNNEST(v.refs) AS r(ref)
+            JOIN '{(osm_rm / "nodos.parquet").as_posix()}' n ON n.id = r.ref
+            WHERE v.highway IN ({tipos})
+            """
+        )
+        .df()
+    )
+
+
 def construir_catalogo(
     gtfs: Path, minsal_shp: Path, mineduc_csv: Path, osm_rm: Path
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -226,6 +266,7 @@ def construir_catalogo(
             educacion(con, mineduc_csv),
             osm(con, osm_rm),
             accesos_autopista(con, osm_rm),
+            centros_de_empleo(),
         ],
         ignore_index=True,
     )

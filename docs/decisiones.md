@@ -121,6 +121,27 @@ calculan con un Dijkstra multi-fuente de scipy desde un nodo virtual por categor
 RM toma ~80 s y queda en Python, testeable.
 **Alternativa futura:** tiempos reales en auto con datos de congestión, si se consiguen.
 
+## D-016 · El ICVU se usa para validar, no como insumo
+**Fecha:** 2026-10-22
+**Decisión:** el nivel ICVU no entra al puntaje; se usa como referencia independiente.
+**Por qué:** si fuera insumo, la coherencia con él no probaría nada. Además cubre solo 42
+de las 52 comunas.
+
+## D-017 · Seguridad con homicidios y delitos con armas
+**Fecha:** 2026-10-22
+**Decisión:** la dimensión de seguridad combina homicidios (promedio de 3 años), robos
+violentos, ley de armas y robo en vivienda por hogar (con menor peso).
+**Por qué:** el robo en vivienda tiene más denuncia en comunas de mayores ingresos y los
+robos violentos se inflan con la población flotante; los homicidios casi no tienen
+subdenuncia. Reemplaza el pendiente de D-012.
+
+## D-018 · Validación contra el precio, sin ajustar pesos al precio
+**Fecha:** 2026-10-22
+**Decisión:** el puntaje se valida contra el premio de ubicación en arriendos (Toc Toc),
+pero los pesos se mantienen los del plan.
+**Por qué:** el precio refleja también prestigio y escasez. Los pesos del plan ya superan
+a las alternativas probadas (ρ 0,66 contra 0,62 con pesos iguales).
+
 ## D-015 · Emergencias se miden desde el servicio hacia la casa
 **Fecha:** 2026-10-22
 **Decisión:** bomberos y policía se miden como viaje cuartel → casa; urgencias,

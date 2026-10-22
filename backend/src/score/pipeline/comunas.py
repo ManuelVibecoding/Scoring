@@ -41,6 +41,10 @@ DELITOS_VIOLENTOS = (
     "Homicidios",
 )
 ROBO_VIVIENDA = ("Robo en lugar habitado",)
+# Violencia con armas: refleja crimen organizado y balaceras, más que hurtos de paso.
+DELITOS_ARMAS = ("Crímenes y simples delitos ley de armas", "Delitos asociados a armas")
+# Los homicidios son pocos por comuna: se promedian varios años para que no dominen el azar.
+ANIOS_PROMEDIO_HOMICIDIOS = 3
 
 NIVELES_ICVU = ("Bajo", "Medio bajo", "Medio alto", "Alto")
 # Nombres abreviados en las tablas del informe ICVU.
@@ -198,19 +202,24 @@ def delitos(casos: pd.DataFrame, poblacion: pd.Series) -> pd.DataFrame:
     meses = casos.groupby("anio")["fecha"].nunique()
     anio = int(meses[meses == 12].index.max())
 
-    def total(anio_: int, tipos: tuple[str, ...]) -> pd.Series:
-        filtro = (casos["anio"] == anio_) & casos["delito"].isin(tipos)
-        return casos[filtro].groupby("cut")["delito_n"].sum()
+    def total(anios: range | int, tipos: tuple[str, ...]) -> pd.Series:
+        rango = range(anios, anios + 1) if isinstance(anios, int) else anios
+        filtro = casos["anio"].isin(rango) & casos["delito"].isin(tipos)
+        return casos[filtro].groupby("cut")["delito_n"].sum().reindex(poblacion.index, fill_value=0)
 
     dmcs, dmcs_previo = total(anio, DMCS), total(anio - 1, DMCS)
     por_100k = 100_000 / poblacion
+    ultimos = range(anio - ANIOS_PROMEDIO_HOMICIDIOS + 1, anio + 1)
+    homicidios_promedio = total(ultimos, ("Homicidios",)) / ANIOS_PROMEDIO_HOMICIDIOS
     return pd.DataFrame(
         {
             "anio_delitos": anio,
             "tasa_dmcs_100k": dmcs * por_100k,
             "tasa_delitos_violentos_100k": total(anio, DELITOS_VIOLENTOS) * por_100k,
             "tasa_robo_vivienda_100k": total(anio, ROBO_VIVIENDA) * por_100k,
+            "tasa_delitos_armas_100k": total(anio, DELITOS_ARMAS) * por_100k,
             "homicidios": total(anio, ("Homicidios",)),
+            "tasa_homicidios_100k_3a": homicidios_promedio * por_100k,
             "variacion_dmcs_anual": dmcs / dmcs_previo - 1,
         }
     ).rename_axis("cut")

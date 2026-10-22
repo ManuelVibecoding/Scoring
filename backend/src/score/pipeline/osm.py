@@ -34,6 +34,10 @@ ETIQUETAS_POI: dict[tuple[str, str], str] = {
     ("amenity", "cafe"): "cafe",
     ("leisure", "fitness_centre"): "gimnasio",
     ("amenity", "university"): "universidad",
+    # Desamenidades: lugares que bajan la calidad de vivir al lado.
+    ("amenity", "prison"): "carcel",
+    ("landuse", "landfill"): "vertedero",
+    ("man_made", "wastewater_plant"): "planta_tratamiento",
 }
 
 
