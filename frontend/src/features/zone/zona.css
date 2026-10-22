@@ -1,0 +1,34 @@
+/* Distribución de la población por letra: una barra apilada y su leyenda. */
+.letras {
+  display: grid;
+  gap: var(--e-2);
+}
+
+.letras-barra {
+  display: flex;
+  height: 12px;
+  background: var(--linea);
+}
+
+.letras-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-1) var(--e-3);
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-2);
+}
+
+.letras-leyenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-1);
+}
+
+.letras-muestra {
+  width: 9px;
+  height: 9px;
+  outline: 1px solid var(--linea);
+}

@@ -28,4 +28,5 @@ uv run score datos descargar                    # baja las fuentes livianas a da
 uv run score datos descargar --incluir-pesadas  # también OSM y ruido (~570 MB)
 uv run score comunas                            # fichas de las 52 comunas
 uv run score cercanias                          # cercanías por hexágono (~80 s)
+uv run score direcciones                        # índice de direcciones de OSM para ubicar avisos
 ```

@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+from score.domain.direcciones import Precision
+
 
 class Operacion(StrEnum):
     ARRIENDO = "arriendo"
@@ -31,6 +33,12 @@ class Aviso:
     banos: int | None
     horas_publicado: int | None
     url: str
+    precision: Precision = Precision.EXACTA
+
+    @property
+    def ubicacion_confiable(self) -> bool:
+        """Sirve para comparar con un punto (exacta o interpolada), no solo con la comuna."""
+        return self.precision in (Precision.EXACTA, Precision.INTERPOLADA)
 
     @property
     def clp_por_m2(self) -> float | None:

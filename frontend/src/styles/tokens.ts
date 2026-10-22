@@ -4,13 +4,24 @@
 export const SENAL = "#E2231A";
 export const TINTA = "#111111";
 export const PAPEL = "#FFFFFF";
+export const GRIS = "#8A8A8A";
 
-/** Escala del mapa por puntaje: de gris claro (peor) a negro (mejor). */
-// El extremo claro no es blanco: "sin color" queda reservado para zonas sin viviendas.
-export const ESCALA_PUNTAJE: readonly [number, string][] = [
-  [20, "#E3E3E3"],
-  [45, "#BDBDBD"],
-  [62, "#8A8A8A"],
-  [78, "#3A3A3A"],
-  [92, "#111111"],
-];
+/** Escala de la capa de calor (la imagen la genera el backend con estos mismos colores). */
+export const ESCALA_CALOR: readonly string[] = ["#E2231A", "#EEE8E2", "#111111"];
+
+/** Colores de las capas de lugares: pocos y sobrios, distinguibles en gris. */
+export const COLOR_LUGAR: Readonly<Record<string, string>> = {
+  metro: "#E2231A",
+  colegio: "#111111",
+  salud: "#2F6FDE",
+  supermercado: "#8A8A8A",
+};
+
+/** Letras de A (mejor) a E (peor): de negro a gris claro, como la escala del puntaje. */
+export const COLOR_LETRA: Readonly<Record<string, string>> = {
+  A: "#111111",
+  B: "#3A3A3A",
+  C: "#8A8A8A",
+  D: "#BDBDBD",
+  E: "#E3E3E3",
+};

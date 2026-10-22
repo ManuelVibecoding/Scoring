@@ -58,7 +58,8 @@ def extraer_osm_rm(pbf: Path, destino: Path, forzar: bool = False) -> Path:
     con.execute("INSTALL spatial; LOAD spatial; SET preserve_insertion_order = false;")
     fuente = f"ST_ReadOSM('{pbf.as_posix()}')"
     salida = {
-        n: (destino / f"{n}.parquet").as_posix() for n in ("nodos", "vias", "parques", "pois")
+        n: (destino / f"{n}.parquet").as_posix()
+        for n in ("nodos", "vias", "parques", "pois", "direcciones")
     }
     nodos_brutos = (destino / "_nodos_con_tags.parquet").as_posix()
 
@@ -156,6 +157,30 @@ def extraer_osm_rm(pbf: Path, destino: Path, forzar: bool = False) -> Path:
                 JOIN '{nodos_brutos}' n ON n.id = r.ref
                 GROUP BY ALL
             ) TO '{salida["pois"]}' (FORMAT parquet)
+            """
+        )
+
+    if forzar or not (destino / "direcciones.parquet").exists():
+        # Direcciones con número: nodos y edificios (de estos, el promedio de sus vértices).
+        con.execute(
+            f"""
+            COPY (
+                SELECT tags['addr:street'] AS calle, tags['addr:housenumber'] AS numero, lat, lon
+                FROM '{nodos_brutos}'
+                WHERE tags IS NOT NULL AND tags['addr:housenumber'] IS NOT NULL
+                  AND tags['addr:street'] IS NOT NULL
+                UNION ALL
+                SELECT ANY_VALUE(w.calle), ANY_VALUE(w.numero), AVG(n.lat), AVG(n.lon)
+                FROM (
+                    SELECT id, tags['addr:street'] AS calle,
+                           tags['addr:housenumber'] AS numero, refs
+                    FROM {fuente}
+                    WHERE kind = 'way' AND tags['addr:housenumber'] IS NOT NULL
+                      AND tags['addr:street'] IS NOT NULL
+                ) w, UNNEST(w.refs) AS r(ref)
+                JOIN '{nodos_brutos}' n ON n.id = r.ref
+                GROUP BY w.id
+            ) TO '{salida["direcciones"]}' (FORMAT parquet)
             """
         )
 

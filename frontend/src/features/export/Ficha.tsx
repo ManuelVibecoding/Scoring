@@ -1,15 +1,16 @@
-import type { Ref } from "react";
 import {
   conUnidad,
   coordenadas,
+  enumerar,
   minutos,
+  nombreFuente,
   nombreLugar,
   nombrePropio,
   numero,
   pesos,
 } from "../../shared/formato";
 import type { FichaPunto, ResumenPrecios } from "../../shared/tipos";
-import { ATRIBUCION_SATELITE } from "./imagenDelPunto";
+import { ATRIBUCION_SATELITE } from "./imagenSatelital";
 import "./ficha.css";
 
 // Las cercanías que caben en el cuadrante, en orden de importancia.
@@ -38,11 +39,10 @@ interface Props {
   direccion: string | null;
   imagen: string | null;
   precios: ResumenPrecios | null;
-  ref?: Ref<HTMLDivElement>;
 }
 
 /** Ficha de 1600 × 900 px (16:9) en cuatro cuadrantes, lista para una presentación. */
-export function Ficha({ ficha, direccion, imagen, precios, ref }: Props) {
+export function Ficha({ ficha, direccion, imagen, precios }: Props) {
   const comuna = nombrePropio(ficha.comuna);
   const cercanias = CERCANIAS_FICHA.map((id) => ficha.cercanias.find((c) => c.id === id)).filter(
     (c) => c !== undefined,
@@ -53,7 +53,7 @@ export function Ficha({ ficha, direccion, imagen, precios, ref }: Props) {
   const hoy = new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
 
   return (
-    <div className="ficha" ref={ref}>
+    <div className="ficha">
       <header className="ficha-cabecera">
         <span className="ficha-marca">Score</span>
         <span className="ficha-titulo">
@@ -151,7 +151,8 @@ export function Ficha({ ficha, direccion, imagen, precios, ref }: Props) {
 
       <footer className="ficha-fuentes">
         Puntaje 0–100, modelo {ficha.version_modelo}. Fuentes: Censo 2024 (INE), Casen 2024 (MDSF), CEAD, Minsal,
-        Mineduc, DTPM, OpenStreetMap{precios ? ", Toc Toc" : ""}. {ATRIBUCION_SATELITE}.
+        Mineduc, DTPM, OpenStreetMap{precios ? `; avisos de ${enumerar(precios.fuentes.map(nombreFuente))}` : ""}.{" "}
+        {ATRIBUCION_SATELITE}.
       </footer>
     </div>
   );

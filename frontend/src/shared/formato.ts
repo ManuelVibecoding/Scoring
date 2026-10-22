@@ -73,3 +73,18 @@ export function nombreLugar(nombre: string | null | undefined): string {
 export function coordenadas(lat: number, lon: number): string {
   return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 }
+
+const NOMBRE_FUENTE: Record<string, string> = {
+  toctoc: "Toc Toc",
+  portalinmobiliario: "Portal Inmobiliario",
+};
+
+export function nombreFuente(fuente: string): string {
+  return NOMBRE_FUENTE[fuente] ?? fuente;
+}
+
+/** ["a", "b", "c"] → "a, b y c". */
+export function enumerar(partes: readonly string[]): string {
+  if (partes.length <= 1) return partes.join("");
+  return `${partes.slice(0, -1).join(", ")} y ${partes.at(-1) ?? ""}`;
+}

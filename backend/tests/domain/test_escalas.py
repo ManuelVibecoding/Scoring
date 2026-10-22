@@ -41,6 +41,16 @@ def test_percentil_invertido_y_vacios() -> None:
     assert np.isnan(resultado.iloc[2])
 
 
+def test_percentil_de_un_valor_nuevo() -> None:
+    from score.domain.escalas import percentil_de_valor
+
+    valores = pd.Series([10.0, 20.0, 30.0, 40.0])
+    pesos = pd.Series([1.0, 1.0, 1.0, 1.0])
+    assert percentil_de_valor(25.0, valores, pesos) == 50.0
+    assert percentil_de_valor(5.0, valores, pesos) == 0.0
+    assert percentil_de_valor(20.0, valores, pesos) == 37.5
+
+
 def test_empates_quedan_en_el_centro_de_su_tramo() -> None:
     valores = pd.Series([5.0, 5.0, 5.0, 5.0])
     assert list(percentil_ponderado(valores, pd.Series([1.0] * 4))) == [50.0] * 4

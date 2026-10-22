@@ -39,7 +39,10 @@ Luego abre http://localhost:5173 (los datos tienen que estar generados; ver más
   (ρ 0,66) y contra el ICVU (ρ 0,66).
 - **Fase 4 (app):** mapa, búsqueda, panel al tocar un punto, arriendos bajo demanda y
   ficha exportable a PNG, PDF y PowerPoint.
-- **Pendiente (Fase 5):** comparador de puntos, búsqueda inversa, plusvalía. Datos
+- **Fase 4b:** mapa de calles con capa de calor opcional, evaluación en el punto exacto,
+  isócronas, capas de lugares y avisos, zonas dibujadas con su informe y ficha, regla,
+  comparación de hasta 3 puntos y avisos de Toc Toc y Portal Inmobiliario (14.317).
+- **Pendiente (Fase 5):** búsqueda inversa, plusvalía. Datos
   faltantes: SINIM (bloqueado), SIMCE, riesgos naturales y proyección futura.
 
 ## Reproducir los datos
@@ -51,6 +54,7 @@ uv run score datos descargar --incluir-pesadas
 uv run score comunas
 uv run score cercanias
 uv run score puntajes
-uv run score precios     # muestra de arriendos (~10 min), solo para validar
+uv run score direcciones
+uv run score precios     # muestra de arriendos de ambos portales (~1 h)
 uv run score validar
 ```

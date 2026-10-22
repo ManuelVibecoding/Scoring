@@ -9,11 +9,15 @@ import duckdb
 import h3
 import numpy as np
 import pandas as pd
+import shapely
 from scipy.spatial import cKDTree
+from shapely.geometry.base import BaseGeometry
 
+from score.domain.escalas import percentil_de_valor
+from score.domain.geo import proyectar
 from score.domain.modelo import MODELO
+from score.domain.puntaje import puntuar
 from score.pipeline.hexagonos import RESOLUCION_H3
-from score.pipeline.red import proyectar
 
 # Más lejos que esto del hexágono habitado más cercano, el punto no se evalúa.
 DISTANCIA_MAXIMA_M = 1_500.0
@@ -23,6 +27,9 @@ class RepositorioParquet:
     def __init__(self, procesados: Path, cartografia: Path) -> None:
         self._puntajes = pd.read_parquet(procesados / "puntajes.parquet").set_index("h3")
         self._comunas = pd.read_parquet(procesados / "comunas.parquet")
+        self._lugares = pd.read_parquet(
+            procesados / "puntos_interes.parquet", columns=["categoria", "nombre", "lat", "lon"]
+        )
         self._cartografia = cartografia
         x, y = proyectar(self._puntajes["lat"].to_numpy(), self._puntajes["lon"].to_numpy())
         self._arbol = cKDTree(np.column_stack([x, y]))
@@ -55,6 +62,44 @@ class RepositorioParquet:
 
     def medianas(self) -> dict[str, float]:
         return self._medianas
+
+    def puntuar_en_contexto(self, fila: pd.Series) -> pd.Series:
+        """Puntúa un lugar nuevo frente a toda la RM (los percentiles necesitan el conjunto).
+
+        El lugar entra con población 0, así no cambia la distribución de referencia.
+        """
+        nueva = fila.copy()
+        nueva["personas"] = 0.0
+        datos = pd.concat([self._puntajes, nueva.to_frame("punto").T])
+        resultado = puntuar(datos, MODELO).iloc[-1].copy()
+        puntaje = float(resultado["puntaje"])
+        pesos = self._puntajes["personas"].fillna(0)
+        resultado["percentil_rm"] = round(
+            percentil_de_valor(puntaje, self._puntajes["puntaje"], pesos)
+        )
+        misma = self._puntajes["cut"] == fila["cut"]
+        resultado["percentil_comuna"] = round(
+            percentil_de_valor(puntaje, self._puntajes.loc[misma, "puntaje"], pesos[misma])
+        )
+        return resultado
+
+    def hexagonos_en(self, zona: BaseGeometry) -> pd.DataFrame:
+        """Hexágonos cuyo centro cae dentro de la zona."""
+        dentro = shapely.contains_xy(zona, self._puntajes["lon"], self._puntajes["lat"])
+        return self._puntajes.loc[np.asarray(dentro, bool)]
+
+    def lugares(self, categorias: list[str]) -> pd.DataFrame:
+        return self._lugares[self._lugares["categoria"].isin(categorias)]
+
+    def contar_lugares_en(self, zona: BaseGeometry) -> dict[str, int]:
+        dentro = shapely.contains_xy(zona, self._lugares["lon"], self._lugares["lat"])
+        return {
+            str(k): int(v) for k, v in self._lugares[dentro]["categoria"].value_counts().items()
+        }
+
+    def tabla(self) -> pd.DataFrame:
+        """Todos los hexágonos con sus indicadores y puntajes."""
+        return self._puntajes
 
     def capa(self) -> pd.DataFrame:
         columnas = ["puntaje", "letra", *(d.id for d in MODELO)]

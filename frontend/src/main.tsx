@@ -7,6 +7,8 @@ import { App } from "./App";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/botones.css";
+import "./styles/panel.css";
+import "./styles/dialogo.css";
 
 const raiz = document.getElementById("raiz");
 if (!raiz) throw new Error("No se encontró el elemento #raiz");

@@ -160,3 +160,66 @@ PowerPoint con texto editable queda como mejora futura.
 **Fecha:** 2026-10-22
 **Decisión:** bomberos y policía se miden como viaje cuartel → casa; urgencias,
 hospitales y autopistas como casa → lugar. En auto se respetan los sentidos de tránsito.
+
+## D-021 · Portal Inmobiliario con geocodificación propia
+**Fecha:** 2026-10-22
+**Decisión:** además de Toc Toc se consulta Portal Inmobiliario (páginas `_Desde_N`, 48
+avisos por página, hasta 60 páginas por comuna y tipo). Como sus tarjetas traen solo la
+dirección escrita, se ubican con un índice propio de direcciones de OpenStreetMap
+(`score direcciones`): número exacto, interpolado entre números de la misma calle,
+mediana de la calle o cruce de dos calles.
+**Por qué:** Toc Toc entrega como máximo 260 avisos por consulta y su robots.txt no
+permite paginar, así que en comunas con miles de avisos los arriendos "cercanos" eran casi
+los mismos en todo el sector. La vista de mapa del portal (`_DisplayType_M`) está
+prohibida por robots.txt y la API de MercadoLibre responde 403. Con ambos portales la
+muestra pasó de 5.933 a 14.317 avisos (Las Condes: de 260 a 1.077 bien ubicados).
+
+## D-022 · Solo avisos bien ubicados cuentan como cercanos
+**Fecha:** 2026-10-22
+**Decisión:** cada aviso guarda la precisión de su ubicación (exacta, interpolada, calle o
+aproximada). Los resúmenes "a 800 m", el mapa y las zonas usan solo exacta e interpolada.
+Un aviso publicado en ambos portales (a menos de 80 m, mismos dormitorios y precio con
+diferencia menor a 2 %) se cuenta una vez.
+**Por qué:** una calle larga como Apoquindo mide kilómetros; ubicar un aviso en su
+mediana lo cambia de barrio. El 56 % de los avisos del portal se ubica con número exacto
+o interpolado.
+
+## D-023 · La UF se lee del SII
+**Fecha:** 2026-10-22
+**Decisión:** los avisos en UF se pasan a pesos con la UF del día publicada por el SII
+(`sii.cl/valores_y_fechas/uf/`).
+**Por qué:** mindicador.cl falló por SSL y por tiempo de espera al probarlo; el SII es la
+fuente oficial y no pide clave.
+
+## D-024 · Mapa normal con capa de calor opcional
+**Fecha:** 2026-10-22
+**Decisión:** el mapa base pasa a ser un mapa de calles normal (OpenFreeMap Liberty, con
+opción gris o satélite). El puntaje se muestra como una superficie suavizada (grilla de
+90 m, suavizado de 200 m) que se puede apagar. Los colores se cortan en los percentiles
+10, 50 y 90 de la población de la RM: rojo bajo la mediana, negro sobre ella. Los
+hexágonos siguen siendo la unidad de cálculo, pero no se dibujan.
+**Por qué:** los hexágonos tapaban el mapa y hacían difícil ubicarse. Cortar por
+percentiles evita que la capa se vea pareja cuando la mayoría de los valores son altos.
+
+## D-025 · El punto se evalúa en sus coordenadas exactas
+**Fecha:** 2026-10-22
+**Decisión:** las cercanías se calculan para el punto tocado (no para el centro de su
+hexágono) con un motor precalculado: minutos desde cada nodo de la red a cada tipo de
+lugar (`data/processed/motor/`, 290 MB). Lo comunal y lo del Censo se toma del hexágono.
+**Por qué:** dos puntos del mismo hexágono pueden estar a 2 o a 4 minutos del Metro. El
+motor responde en ~250 ms y también calcula la isócrona a pie en ~30 ms.
+
+## D-026 · Informe de zona ponderado por población
+**Fecha:** 2026-10-22
+**Decisión:** una zona dibujada (polígono, rectángulo o círculo, hasta 400 km²) se
+resume con el promedio de sus hexágonos ponderado por personas, el rango donde vive el
+80 % central, la distribución por letra, los lugares contados dentro y los arriendos
+ubicados dentro.
+**Por qué:** un promedio simple daría el mismo peso a un cerro vacío que a un barrio
+denso. El límite de área mantiene la respuesta rápida.
+
+## D-027 · Comparar hasta tres puntos
+**Fecha:** 2026-10-22
+**Decisión:** se guardan hasta 3 puntos y se comparan en una tabla con el mejor valor de
+cada fila en rojo. Los arriendos no se marcan: más caro no es mejor ni peor.
+**Por qué:** más de tres columnas no caben a lo ancho de la pantalla de un notebook.

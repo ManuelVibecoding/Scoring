@@ -248,3 +248,44 @@
   border-top: 1px solid var(--linea);
   padding-top: 8px;
 }
+
+/* Ficha de zona: distribución por letra al pie del cuadrante 02. */
+.ficha-letras {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.ficha-subtitulo {
+  font-size: 13px;
+  color: var(--tinta-3);
+}
+
+.ficha .letras-barra {
+  height: 16px;
+}
+
+.ficha .letras-leyenda {
+  font-size: 14px;
+}
+
+/* Conteos de la zona en dos columnas, para dejar espacio a la distribución por letra. */
+.ficha-conteos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 40px;
+  font-size: 16px;
+}
+
+.ficha-conteos div {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.ficha-conteos dd {
+  margin: 0;
+  font-weight: var(--peso-medio);
+}

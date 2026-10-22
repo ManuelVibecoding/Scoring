@@ -55,6 +55,7 @@ export interface FichaPunto {
 export interface AvisoCercano {
   aviso: {
     id: string;
+    fuente: string;
     tipo: "departamento" | "casa";
     precio_clp: number | null;
     superficie_m2: number | null;
@@ -64,23 +65,49 @@ export interface AvisoCercano {
   distancia_m: number;
 }
 
-export interface ResumenPrecios {
-  radio_m: number;
+export interface EstadisticasPrecios {
   avisos: number;
   mediana_arriendo_clp: number | null;
   mediana_clp_m2: number | null;
   mediana_por_dormitorios: Record<string, number>;
-  ejemplos: AvisoCercano[];
-  actualizado: string | null;
-  fuente: string;
+  por_fuente: Record<string, number>;
 }
 
-/** Capa del mapa en formato columnar: una lista por columna. */
-export interface Capa {
-  h3: string[];
-  puntaje: (number | null)[];
-  letra: (Letra | null)[];
-  [dimension: string]: (number | string | null)[];
+export interface ResumenPrecios extends EstadisticasPrecios {
+  radio_m: number;
+  ejemplos: AvisoCercano[];
+  actualizado: string | null;
+  fuentes: string[];
+}
+
+/** Capa de calor: imágenes georreferenciadas con estas cuatro esquinas, una por variable. */
+export interface Superficie {
+  esquinas: [[number, number], [number, number], [number, number], [number, number]];
+  variables: string[];
+}
+
+/** Promedios de una zona dibujada, ponderados por población. */
+export interface ResumenZona {
+  hexagonos: number;
+  personas: number;
+  hogares: number;
+  viviendas: number;
+  puntaje: number | null;
+  letra: Letra | null;
+  rango_puntaje: [number, number] | null;
+  distribucion_letras: Partial<Record<Letra, number>>;
+  dimensiones: Record<string, number | null>;
+  fortalezas: string[];
+  debilidades: string[];
+  comunas: Record<string, number>;
+}
+
+export interface InformeZona {
+  area_km2: number;
+  resumen: ResumenZona;
+  veredicto: string;
+  lugares: { id: string; etiqueta: string; cantidad: number }[];
+  precios: EstadisticasPrecios;
 }
 
 export interface ResultadoBusqueda {

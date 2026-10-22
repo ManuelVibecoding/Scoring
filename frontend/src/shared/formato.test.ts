@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { conUnidad, minutos, nombreLugar, nombrePropio, numero, pesos, porcentaje } from "./formato";
+import {
+  conUnidad,
+  enumerar,
+  minutos,
+  nombreFuente,
+  nombreLugar,
+  nombrePropio,
+  numero,
+  pesos,
+  porcentaje,
+} from "./formato";
 
 describe("formato es-CL", () => {
   it("usa punto de miles y coma decimal", () => {
@@ -37,5 +47,12 @@ describe("formato es-CL", () => {
     expect(nombrePropio("ÑUÑOA")).toBe("Ñuñoa");
     expect(nombrePropio("SAN JOSÉ DE MAIPO")).toBe("San José de Maipo");
     expect(nombrePropio("LA FLORIDA")).toBe("La Florida");
+  });
+
+  it("nombra las fuentes de avisos y enumera en español", () => {
+    expect(nombreFuente("portalinmobiliario")).toBe("Portal Inmobiliario");
+    expect(nombreFuente("otra")).toBe("otra");
+    expect(enumerar(["Toc Toc"])).toBe("Toc Toc");
+    expect(enumerar(["a", "b", "c"])).toBe("a, b y c");
   });
 });

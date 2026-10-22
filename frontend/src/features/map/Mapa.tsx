@@ -1,166 +1,174 @@
 import {
-  type GeoJSONSource,
-  type LayerSpecification,
+  type MapGeoJSONFeature,
   Map as MapaMapLibre,
   type MapMouseEvent,
   NavigationControl,
+  Popup,
+  ScaleControl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
-import { ESCALA_PUNTAJE, SENAL, TINTA } from "../../styles/tokens";
-import { colorPorVariable, type Variable } from "./capa";
+import type { TerraDraw } from "terra-draw";
+import { nombreFuente, nombreLugar, numero, pesos } from "../../shared/formato";
+import { asegurarCapas, type EstadoCapas, FUENTES_GEOJSON, ponerCalor, ponerDatos } from "./capas";
+import { crearDibujo, type Herramienta, modoDe } from "./dibujo";
+import { ESTILOS, type EstiloBase } from "./estilos";
 import "./mapa.css";
 
-// Mapa base gris y sin color (OpenFreeMap, datos de OpenStreetMap): no compite con la capa.
-const ESTILO_BASE = "https://tiles.openfreemap.org/styles/positron";
 const CENTRO_SANTIAGO: [number, number] = [-70.62, -33.47];
+const CAPAS_CON_DETALLE = ["avisos", "lugares"];
+// El clic que cierra un dibujo también llega como clic al mapa: se ignora por este lapso.
+const PAUSA_TRAS_DIBUJO_MS = 400;
 
 interface Props {
-  hexagonos: GeoJSON.FeatureCollection | null;
-  comunas: GeoJSON.FeatureCollection | null;
-  variable: Variable;
-  seleccionado: string | null;
+  estiloBase: EstiloBase;
+  capas: EstadoCapas;
+  herramienta: Herramienta;
   destino: { lat: number; lon: number } | null;
-  marcador: { lat: number; lon: number } | null;
   onTocar: (lat: number, lon: number) => void;
+  onZona: (geometria: GeoJSON.Polygon) => void;
+  onMedicion: (coordenadas: number[][]) => void;
 }
 
-type Accion = (m: MapaMapLibre) => void;
-
-export function Mapa({ hexagonos, comunas, variable, seleccionado, destino, marcador, onTocar }: Props) {
+export function Mapa({ estiloBase, capas, herramienta, destino, onTocar, onZona, onMedicion }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaMapLibre | null>(null);
+  const dibujo = useRef<TerraDraw | null>(null);
   const listo = useRef(false);
-  // Lo que se pidió antes de que el estilo terminara de cargar; se aplica al cargar.
-  const pendientes = useRef<Accion[]>([]);
-  const alTocar = useRef(onTocar);
+  // Último estado pedido: se reaplica completo cuando cambia el mapa base.
+  const estado = useRef(capas);
+  const herramientaActual = useRef(herramienta);
+  const callbacks = useRef({ onTocar, onZona, onMedicion });
+  const estiloActual = useRef(estiloBase);
+  const finDelDibujo = useRef(0);
 
   useEffect(() => {
-    alTocar.current = onTocar;
-  }, [onTocar]);
+    callbacks.current = { onTocar, onZona, onMedicion };
+  }, [onTocar, onZona, onMedicion]);
 
   // Crear el mapa una sola vez.
   useEffect(() => {
     if (!contenedor.current) return;
     const m = new MapaMapLibre({
       container: contenedor.current,
-      style: ESTILO_BASE,
+      style: ESTILOS[estiloActual.current],
       center: CENTRO_SANTIAGO,
-      zoom: 10.3,
+      zoom: 10.6,
       minZoom: 8,
-      maxZoom: 17,
+      maxZoom: 18,
       attributionControl: { compact: true },
     });
     m.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
-    m.on("load", () => {
-      agregarCapas(m);
+    m.addControl(new ScaleControl({ unit: "metric" }), "bottom-left");
+
+    m.on("style.load", () => {
+      asegurarCapas(m, estado.current, estiloActual.current === "satelite");
+      dibujo.current?.stop();
+      dibujo.current = crearDibujo(m);
+      dibujo.current.setMode(modoDe(herramientaActual.current));
+      dibujo.current.on("finish", (id) => {
+        const d = dibujo.current;
+        const figura = d?.getSnapshotFeature(id);
+        if (!d || !figura) return;
+        finDelDibujo.current = performance.now();
+        if (figura.geometry.type === "Polygon") callbacks.current.onZona(figura.geometry);
+        if (figura.geometry.type === "LineString") callbacks.current.onMedicion(figura.geometry.coordinates);
+        d.clear();
+      });
       listo.current = true;
-      for (const accion of pendientes.current.splice(0)) accion(m);
     });
-    m.on("click", (e: MapMouseEvent) => alTocar.current(e.lngLat.lat, e.lngLat.lng));
-    m.getCanvas().style.cursor = "crosshair";
+
+    m.on("click", (e: MapMouseEvent) => {
+      if (herramientaActual.current !== "punto") return;
+      if (performance.now() - finDelDibujo.current < PAUSA_TRAS_DIBUJO_MS) return;
+      const presentes = CAPAS_CON_DETALLE.filter((c) => m.getLayer(c));
+      const [tocado] = presentes.length ? m.queryRenderedFeatures(e.point, { layers: presentes }) : [];
+      if (tocado) {
+        mostrarDetalle(m, tocado);
+        return;
+      }
+      callbacks.current.onTocar(e.lngLat.lat, e.lngLat.lng);
+    });
+    for (const capa of CAPAS_CON_DETALLE) {
+      m.on("mouseenter", capa, () => (m.getCanvas().style.cursor = "pointer"));
+      m.on("mouseleave", capa, () => (m.getCanvas().style.cursor = ""));
+    }
     mapa.current = m;
     return () => {
       listo.current = false;
-      pendientes.current = [];
+      dibujo.current?.stop();
+      dibujo.current = null;
       m.remove();
       mapa.current = null;
     };
   }, []);
 
-  function cuandoEsteListo(accion: Accion) {
+  // Mapa base.
+  useEffect(() => {
     const m = mapa.current;
-    if (m && listo.current) accion(m);
-    else pendientes.current.push(accion);
-  }
+    if (!m || estiloActual.current === estiloBase) return;
+    estiloActual.current = estiloBase;
+    listo.current = false;
+    m.setStyle(ESTILOS[estiloBase]);
+  }, [estiloBase]);
 
+  // Datos de las capas: se guardan siempre y se aplican si el mapa está listo.
   useEffect(() => {
-    if (hexagonos) cuandoEsteListo((m) => fuente(m, "hexagonos").setData(hexagonos));
-  }, [hexagonos]);
+    const anterior = estado.current;
+    estado.current = capas;
+    const m = mapa.current;
+    if (!m || !listo.current) return;
+    for (const f of FUENTES_GEOJSON) if (anterior[f] !== capas[f]) ponerDatos(m, f, capas[f]);
+    if (anterior.calor !== capas.calor) ponerCalor(m, capas.calor, anterior.calor);
+  }, [capas]);
 
+  // Herramienta activa.
   useEffect(() => {
-    if (comunas) cuandoEsteListo((m) => fuente(m, "comunas").setData(comunas));
-  }, [comunas]);
-
-  useEffect(() => {
-    cuandoEsteListo((m) =>
-      m.setPaintProperty("hexagonos", "fill-color", colorPorVariable(variable, ESCALA_PUNTAJE)),
-    );
-  }, [variable]);
-
-  useEffect(() => {
-    cuandoEsteListo((m) => m.setFilter("seleccion", ["==", ["get", "h3"], seleccionado ?? ""]));
-  }, [seleccionado]);
-
-  useEffect(() => {
-    const datos: GeoJSON.FeatureCollection = {
-      type: "FeatureCollection",
-      features: marcador
-        ? [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [marcador.lon, marcador.lat] } }]
-        : [],
-    };
-    cuandoEsteListo((m) => fuente(m, "marcador").setData(datos));
-  }, [marcador]);
+    herramientaActual.current = herramienta;
+    if (listo.current) dibujo.current?.setMode(modoDe(herramienta));
+    const lienzo = mapa.current?.getCanvas();
+    if (lienzo) lienzo.style.cursor = herramienta === "punto" ? "crosshair" : "";
+  }, [herramienta]);
 
   useEffect(() => {
     if (!destino) return;
-    cuandoEsteListo((m) =>
-      m.flyTo({ center: [destino.lon, destino.lat], zoom: Math.max(m.getZoom(), 14.5), duration: 600 }),
-    );
+    const m = mapa.current;
+    m?.flyTo({ center: [destino.lon, destino.lat], zoom: Math.max(m.getZoom(), 15), duration: 600 });
   }, [destino]);
 
   return <div ref={contenedor} className="mapa" role="application" aria-label="Mapa de la Región Metropolitana" />;
 }
 
-function fuente(m: MapaMapLibre, id: string): GeoJSONSource {
-  return m.getSource(id) as GeoJSONSource;
-}
-
-function agregarCapas(m: MapaMapLibre) {
-  const vacia: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
-  m.addSource("hexagonos", { type: "geojson", data: vacia });
-  m.addSource("comunas", { type: "geojson", data: vacia });
-  m.addSource("marcador", { type: "geojson", data: vacia });
-  // Los hexágonos y límites van debajo de las etiquetas del mapa base para que se lean.
-  const primeraEtiqueta = m.getStyle().layers.find((c: LayerSpecification) => c.type === "symbol")?.id;
-  m.addLayer(
-    {
-      id: "hexagonos",
-      type: "fill",
-      source: "hexagonos",
-      paint: {
-        "fill-color": colorPorVariable("puntaje", ESCALA_PUNTAJE),
-        // Al acercarse, la capa se aclara para dejar ver las calles.
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.75, 13, 0.6, 16, 0.38],
-      },
-    },
-    primeraEtiqueta,
-  );
-  m.addLayer(
-    {
-      id: "comunas",
-      type: "line",
-      source: "comunas",
-      paint: { "line-color": TINTA, "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.4, 14, 1.2] },
-    },
-    primeraEtiqueta,
-  );
-  m.addLayer({
-    id: "seleccion",
-    type: "line",
-    source: "hexagonos",
-    filter: ["==", ["get", "h3"], ""],
-    paint: { "line-color": SENAL, "line-width": 3 },
-  });
-  m.addLayer({
-    id: "marcador",
-    type: "circle",
-    source: "marcador",
-    paint: {
-      "circle-radius": 6,
-      "circle-color": SENAL,
-      "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 2,
-    },
-  });
+/** Ventanita con el detalle de un lugar o un aviso (armada con nodos, sin HTML externo). */
+function mostrarDetalle(m: MapaMapLibre, rasgo: MapGeoJSONFeature) {
+  const p = rasgo.properties as Record<string, string | number | null>;
+  const caja = document.createElement("div");
+  caja.className = "detalle";
+  const titulo = document.createElement("strong");
+  const sub = document.createElement("span");
+  if (rasgo.layer.id === "avisos") {
+    titulo.textContent = `${pesos(Number(p.precio_clp))} al mes`;
+    const m2 = p.superficie_m2 ? ` · ${numero(Number(p.superficie_m2))} m²` : "";
+    const dorm = p.dormitorios ? ` · ${String(p.dormitorios)}D` : "";
+    sub.textContent = `${String(p.tipo)}${m2}${dorm} · ${nombreFuente(String(p.fuente))}`;
+    caja.append(titulo, sub);
+    if (typeof p.url === "string" && p.url.startsWith("https://")) {
+      const enlace = document.createElement("a");
+      enlace.href = p.url;
+      enlace.target = "_blank";
+      enlace.rel = "noreferrer";
+      enlace.textContent = "Ver aviso";
+      caja.append(enlace);
+    }
+  } else {
+    titulo.textContent = nombreLugar(typeof p.nombre === "string" ? p.nombre : null);
+    sub.textContent = String(p.etiqueta ?? p.categoria ?? "");
+    caja.append(titulo, sub);
+  }
+  const geometria = rasgo.geometry;
+  if (geometria.type !== "Point") return;
+  new Popup({ closeButton: false, offset: 10 })
+    .setLngLat(geometria.coordinates as [number, number])
+    .setDOMContent(caja)
+    .addTo(m);
 }

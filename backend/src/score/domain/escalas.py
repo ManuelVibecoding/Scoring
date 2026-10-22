@@ -66,6 +66,17 @@ class PorPercentil:
         return percentil_ponderado(valores, pesos, self.mayor_es_mejor)
 
 
+def percentil_de_valor(valor: float, valores: pd.Series, pesos: pd.Series) -> float:
+    """Percentil (0–100) de un valor nuevo frente a una población ya existente."""
+    validos = valores.notna()
+    v, w = valores[validos], pesos[validos].clip(lower=0).astype(float)
+    total = float(w.sum())
+    if total == 0 or np.isnan(valor):
+        return float("nan")
+    debajo = float(w[v < valor].sum()) + float(w[v == valor].sum()) / 2
+    return debajo / total * 100
+
+
 def percentil_ponderado(
     valores: pd.Series, pesos: pd.Series, mayor_es_mejor: bool = True
 ) -> pd.Series:

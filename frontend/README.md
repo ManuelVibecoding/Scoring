@@ -36,16 +36,18 @@ npm run build       # versión de producción en dist/
 ```
 src/
 ├─ features/
-│  ├─ map/            mapa (MapLibre), capa de hexágonos H3 y leyenda
+│  ├─ map/            mapa (MapLibre), capas propias, panel de capas y dibujo (Terra Draw)
 │  ├─ search/         búsqueda de direcciones
 │  ├─ point-panel/    panel al tocar un punto: puntaje, dimensiones, cercanías, precios, comuna
-│  └─ export/         ficha 16:9 y exportación a PNG, PDF y PowerPoint
-├─ shared/            cliente de la API, tipos y formatos es-CL
-└─ styles/            tokens del sistema de diseño (única fuente de colores y tipografía)
+│  ├─ zone/           informe y ficha de una zona dibujada
+│  ├─ compare/        comparación de hasta 3 puntos
+│  └─ export/         ficha 16:9, imagen satelital y exportación a PNG, PDF y PowerPoint
+├─ shared/            cliente de la API, tipos, formatos es-CL y panel lateral
+└─ styles/            tokens del sistema de diseño y estilos compartidos (botones, panel, diálogos)
 ```
 
 ## Servicios externos (sin clave)
 
-- **Mapa base:** OpenFreeMap (estilo Positron, datos de OpenStreetMap).
-- **Imagen del punto en la ficha:** Esri World Imagery (satelital, con atribución).
+- **Mapa base:** OpenFreeMap (estilos Liberty y Positron, datos de OpenStreetMap).
+- **Satélite** (mapa e imagen de la ficha): Esri World Imagery, con atribución.
 - **Búsqueda de direcciones:** Nominatim (OpenStreetMap), a través del backend.

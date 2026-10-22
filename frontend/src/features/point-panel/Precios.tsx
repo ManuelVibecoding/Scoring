@@ -1,4 +1,4 @@
-import { numero, pesos } from "../../shared/formato";
+import { enumerar, nombreFuente, numero, pesos } from "../../shared/formato";
 import type { ResumenPrecios } from "../../shared/tipos";
 
 export type EstadoPrecios =
@@ -79,16 +79,22 @@ function Resumen({ resumen }: { resumen: ResumenPrecios }) {
             <a href={aviso.url} target="_blank" rel="noreferrer">
               {pesos(aviso.precio_clp)}
               {aviso.superficie_m2 ? ` · ${numero(aviso.superficie_m2)} m²` : ""}
-              {aviso.dormitorios ? ` · ${aviso.dormitorios}D` : ""} · {aviso.tipo}
+              {aviso.dormitorios ? ` · ${aviso.dormitorios}D` : ""} · {aviso.tipo} · {nombreFuente(aviso.fuente)}
             </a>
             <span>{numero(distancia_m)} m</span>
           </li>
         ))}
       </ul>
       <p className="panel-fuente">
-        Fuente: {resumen.fuente === "toctoc" ? "Toc Toc" : resumen.fuente}
+        {textoFuentes(resumen)}
         {resumen.actualizado && `, avisos al ${fecha.format(new Date(resumen.actualizado))}`}.
       </p>
     </>
   );
+}
+
+/** "Fuentes: Toc Toc (120) y Portal Inmobiliario (85)", sin repetir avisos publicados en ambos. */
+function textoFuentes(resumen: ResumenPrecios): string {
+  const partes = resumen.fuentes.map((f) => `${nombreFuente(f)} (${numero(resumen.por_fuente[f] ?? 0)})`);
+  return `Fuente${partes.length === 1 ? "" : "s"}: ${enumerar(partes)}`;
 }

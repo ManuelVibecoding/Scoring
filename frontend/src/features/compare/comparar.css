@@ -1,0 +1,161 @@
+/* Comparación de puntos: bandeja al pie del mapa y tabla lado a lado. */
+.comparar-numero {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--tinta);
+  color: var(--papel);
+  font-size: var(--t-etiqueta);
+  font-weight: var(--peso-fuerte);
+}
+
+/* ---------- Bandeja ---------- */
+.bandeja {
+  position: absolute;
+  left: 50%;
+  bottom: var(--e-6);
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  max-width: calc(100% - 2 * var(--e-4));
+  padding: var(--e-2) var(--e-3);
+  background: var(--papel);
+  border-top: var(--filete);
+  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.12);
+  font-size: var(--t-chico);
+}
+
+.bandeja-puntos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--e-3);
+  flex-wrap: wrap;
+}
+
+.bandeja-puntos li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-1);
+  white-space: nowrap;
+}
+
+.bandeja-quitar {
+  border: none;
+  background: none;
+  padding: 0 var(--e-1);
+  color: var(--tinta-3);
+  font-size: var(--t-medio);
+  line-height: 1;
+}
+
+.bandeja .boton-principal:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- Tabla ---------- */
+.dialogo-comparar {
+  width: min(960px, 100%);
+}
+
+.comparar-marco {
+  overflow-x: auto;
+}
+
+.comparar {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-chico);
+  font-variant-numeric: tabular-nums;
+}
+
+.comparar thead th {
+  vertical-align: top;
+  text-align: left;
+  font-weight: var(--peso-normal);
+  padding: 0 var(--e-3) var(--e-3) 0;
+  border-bottom: var(--filete);
+}
+
+.comparar thead th > * + * {
+  margin-top: var(--e-2);
+}
+
+.comparar-lugar {
+  display: grid;
+  gap: 2px;
+}
+
+.comparar-lugar span {
+  color: var(--tinta-3);
+  font-size: var(--t-etiqueta);
+}
+
+.comparar-cifra {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-1);
+  font-size: var(--t-grande);
+  font-weight: var(--peso-medio);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.comparar-letra {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  background: var(--senal);
+  color: var(--papel);
+  font-size: var(--t-etiqueta);
+  font-weight: var(--peso-fuerte);
+  letter-spacing: 0;
+}
+
+.comparar-bloque th {
+  padding: var(--e-4) 0 var(--e-1);
+  text-align: left;
+  font-size: var(--t-etiqueta);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--interletra-etiqueta);
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+.comparar tbody th[scope="row"],
+.comparar tbody td {
+  padding: var(--e-1) var(--e-3) var(--e-1) 0;
+  border-bottom: var(--filete-fino);
+  text-align: left;
+  font-weight: var(--peso-normal);
+}
+
+.comparar tbody th[scope="row"] {
+  color: var(--tinta-2);
+  width: 30%;
+}
+
+.comparar tbody td {
+  white-space: nowrap;
+}
+
+.comparar-mejor {
+  color: var(--senal);
+  font-weight: var(--peso-fuerte) !important;
+}
+
+@media (max-width: 760px) {
+  .bandeja {
+    bottom: auto;
+    top: 64px;
+    flex-wrap: wrap;
+  }
+}

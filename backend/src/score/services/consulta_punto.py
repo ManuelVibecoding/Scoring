@@ -9,7 +9,7 @@ import pandas as pd
 from score.domain.modelo import MODELO
 from score.domain.puntaje import fortalezas_y_debilidades
 from score.domain.veredicto import redactar
-from score.services.puertos import RepositorioPuntajes
+from score.services.puertos import MotorDeCercanias, RepositorioPuntajes
 
 # Lo que se muestra en "Cercanías", en este orden: (id, etiqueta, modo).
 CERCANIAS: tuple[tuple[str, str, str], ...] = (
@@ -123,8 +123,37 @@ class FichaPunto:
     version_modelo: str
 
 
-def consultar_punto(repo: RepositorioPuntajes, lat: float, lon: float) -> FichaPunto | None:
+def evaluar_en_punto(
+    repo: RepositorioPuntajes, motor: MotorDeCercanias, lat: float, lon: float
+) -> tuple[pd.Series, float] | None:
+    """Fila de indicadores y puntaje del punto exacto.
+
+    El contexto (comuna, censo del sector) viene del hexágono habitado más cercano; las
+    cercanías, conteos y distancias se miden en el punto mismo.
+    """
     encontrado = repo.hexagono_mas_cercano(lat, lon)
+    if encontrado is None:
+        return None
+    base, distancia = encontrado
+    fila = base.copy()
+    for columna, valor in motor.evaluar([lat], [lon]).iloc[0].items():
+        fila[str(columna)] = valor
+    fila["lat"], fila["lon"] = lat, lon
+    for columna, valor in repo.puntuar_en_contexto(fila).items():
+        fila[str(columna)] = valor
+    return fila, distancia
+
+
+def consultar_punto(
+    repo: RepositorioPuntajes,
+    lat: float,
+    lon: float,
+    motor: MotorDeCercanias | None = None,
+) -> FichaPunto | None:
+    """Ficha del punto: exacta si hay motor de cercanías; si no, la de su hexágono."""
+    encontrado = (
+        evaluar_en_punto(repo, motor, lat, lon) if motor else repo.hexagono_mas_cercano(lat, lon)
+    )
     if encontrado is None:
         return None
     fila, distancia = encontrado

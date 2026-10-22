@@ -78,13 +78,30 @@ def _puntajes(_: argparse.Namespace) -> int:
 def _precios(_: argparse.Namespace) -> int:
     import pandas as pd
 
-    from score.adapters.toctoc import TocToc
+    from score.adapters.portales import crear_portales
     from score.pipeline.precios import muestrear
 
     comunas = pd.read_parquet(config.DATOS_PROCESADOS / "comunas.parquet")["comuna"].tolist()
     with _cliente() as cliente:
-        ruta = muestrear(TocToc(cliente), comunas, config.DATOS_INTERMEDIOS / "avisos")
+        portales = crear_portales(cliente, config.DATOS_PROCESADOS)
+        ruta = muestrear(portales, comunas, config.DATOS_INTERMEDIOS / "avisos")
     print(f"Muestra de avisos: {ruta}")
+    return 0
+
+
+def _direcciones(_: argparse.Namespace) -> int:
+    from score.pipeline.direcciones import construir_indice
+    from score.pipeline.osm import extraer_osm_rm
+
+    osm = extraer_osm_rm(
+        config.DATOS_CRUDOS / "osm_chile" / "chile-latest.osm.pbf",
+        config.DATOS_INTERMEDIOS / "osm_rm",
+    )
+    comunal = next(
+        (config.DATOS_INTERMEDIOS / "censo2024_cartografia_rm").glob("*_Comunal.parquet")
+    )
+    rutas = construir_indice(osm, comunal, config.DATOS_PROCESADOS)
+    print("Índice de direcciones:", *rutas)
     return 0
 
 
@@ -94,14 +111,15 @@ def _validar(_: argparse.Namespace) -> int:
 
     import pandas as pd
 
+    from score.pipeline.precios import ultima_muestra
     from score.pipeline.validacion import lugares_de_referencia, validar
 
     datos = pd.read_parquet(config.DATOS_PROCESADOS / "puntajes.parquet").set_index("h3")
-    muestras = sorted((config.DATOS_INTERMEDIOS / "avisos").glob("toctoc_arriendo_*.parquet"))
-    if not muestras:
+    muestra = ultima_muestra(config.DATOS_INTERMEDIOS / "avisos")
+    if muestra is None:
         print("No hay muestra de avisos: corre primero `uv run score precios`.")
         return 1
-    resultado, _comparados = validar(datos, pd.read_parquet(muestras[-1]))
+    resultado, _comparados = validar(datos, pd.read_parquet(muestra))
     salida = config.DATOS_PROCESADOS / "validacion.json"
     salida.write_text(json.dumps(asdict(resultado), indent=2, ensure_ascii=False), "utf-8")
     print(json.dumps(asdict(resultado), indent=2, ensure_ascii=False))
@@ -137,8 +155,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     sub.add_parser(
-        "precios", help="Muestra de avisos de arriendo de la RM (Toc Toc), para validar"
+        "precios", help="Avisos de arriendo de toda la RM (Toc Toc y Portal Inmobiliario)"
     ).set_defaults(func=_precios)
+
+    sub.add_parser(
+        "direcciones", help="Índice de direcciones de OSM para ubicar avisos"
+    ).set_defaults(func=_direcciones)
 
     sub.add_parser(
         "validar", help="Compara el puntaje con precios de arriendo y con el ICVU"

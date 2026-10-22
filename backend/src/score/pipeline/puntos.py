@@ -13,7 +13,7 @@ import pandas as pd
 from scipy.spatial import ConvexHull, cKDTree
 
 from score import config
-from score.pipeline.red import proyectar
+from score.domain.geo import proyectar
 
 # Superficie mínima (m²) para contar como área verde y como parque.
 AREA_MINIMA_PLAZA = 1_000.0

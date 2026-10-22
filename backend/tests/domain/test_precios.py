@@ -45,6 +45,26 @@ def test_resumen_solo_cuenta_lo_que_esta_dentro_del_radio() -> None:
     assert [e.aviso.id for e in r.ejemplos] == ["a", "b", "c"]
 
 
+def test_mismo_aviso_en_dos_portales_cuenta_una_vez() -> None:
+    from dataclasses import replace
+
+    original = _aviso("a", 100, 500_000, 50, 2)
+    copia = replace(original, fuente="otro", id="b", precio_clp=505_000.0)
+    distinto = replace(original, fuente="otro", id="c", dormitorios=3)
+    r = resumir([original, copia, distinto], LAT, LON, radio_m=800)
+    assert r.avisos == 2
+    assert r.por_fuente == {"prueba": 1, "otro": 1}
+
+
+def test_avisos_ubicados_solo_por_calle_no_cuentan() -> None:
+    from dataclasses import replace
+
+    from score.domain.direcciones import Precision
+
+    vago = replace(_aviso("a", 100, 500_000, 50, 2), precision=Precision.CALLE)
+    assert resumir([vago], LAT, LON, radio_m=800).avisos == 0
+
+
 def test_resumen_vacio() -> None:
     r = resumir([], LAT, LON, radio_m=800)
     assert r.avisos == 0

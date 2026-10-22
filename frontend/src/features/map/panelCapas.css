@@ -1,0 +1,211 @@
+/* Panel de capas (arriba a la derecha del mapa) y barra de herramientas (arriba a la izquierda). */
+.capas,
+.herramientas {
+  position: absolute;
+  top: var(--e-4);
+  z-index: 2;
+  background: var(--papel);
+  border-top: var(--filete);
+  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.12);
+}
+
+.capas {
+  right: var(--e-4);
+  width: 232px;
+  font-size: var(--t-chico);
+}
+
+.capas-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--e-2) var(--e-3);
+  border: none;
+  background: transparent;
+  font-size: var(--t-medio);
+  line-height: 1;
+}
+
+.capas-cuerpo {
+  display: grid;
+  gap: var(--e-3);
+  padding: 0 var(--e-3) var(--e-3);
+}
+
+.capas-segmentos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: var(--filete-fino);
+}
+
+.capas-segmentos button {
+  padding: var(--e-1) 0;
+  border: none;
+  background: var(--papel);
+  font-size: var(--t-etiqueta);
+  font-weight: var(--peso-medio);
+}
+
+.capas-segmentos button + button {
+  border-left: var(--filete-fino);
+}
+
+.capas-segmentos button[aria-checked="true"] {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.capas-grupo {
+  display: grid;
+  gap: var(--e-1);
+  margin: 0;
+  padding: var(--e-2) 0 0;
+  border: none;
+  border-top: var(--filete-fino);
+}
+
+.capas-grupo legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--e-1);
+}
+
+.capas-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  cursor: pointer;
+}
+
+.capas-opcion input {
+  margin: 0;
+  accent-color: var(--tinta);
+}
+
+.capas-punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.capas-cuenta {
+  margin-left: auto;
+  color: var(--tinta-3);
+}
+
+.capas select {
+  font: inherit;
+  font-weight: var(--peso-medio);
+  padding: var(--e-1) 0;
+  border: none;
+  border-bottom: var(--filete-fino);
+  background: transparent;
+  border-radius: 0;
+}
+
+.capas-escala {
+  height: 8px;
+  margin-top: var(--e-1);
+}
+
+.capas-extremos {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-3);
+}
+
+.capas-intensidad {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--e-2);
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-2);
+}
+
+.capas-intensidad input {
+  accent-color: var(--tinta);
+}
+
+.capas-nota {
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-3);
+  line-height: 1.35;
+}
+
+/* ---------- Herramientas ---------- */
+.herramientas {
+  left: var(--e-4);
+  display: grid;
+  gap: 0;
+  max-width: calc(100% - 232px - 3 * var(--e-4));
+}
+
+.herramientas-botones {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.herramientas-botones button {
+  display: flex;
+  align-items: center;
+  gap: var(--e-1);
+  padding: var(--e-2) var(--e-3);
+  border: none;
+  background: var(--papel);
+  font-size: var(--t-chico);
+  font-weight: var(--peso-medio);
+}
+
+.herramientas-botones button + button {
+  border-left: var(--filete-fino);
+}
+
+.herramientas-botones button[aria-pressed="true"] {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.herramientas-botones svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.herramientas-ayuda,
+.herramientas-medida {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  padding: var(--e-2) var(--e-3);
+  border-top: var(--filete-fino);
+  font-size: var(--t-etiqueta);
+  color: var(--tinta-2);
+}
+
+.herramientas-medida strong {
+  font-size: var(--t-base);
+  font-weight: var(--peso-medio);
+  color: var(--senal);
+}
+
+@media (max-width: 760px) {
+  .capas {
+    top: auto;
+    bottom: var(--e-6);
+    right: var(--e-2);
+    width: 200px;
+  }
+
+  .herramientas {
+    top: var(--e-2);
+    left: var(--e-2);
+    max-width: calc(100% - 2 * var(--e-2));
+  }
+
+  .herramientas-botones button span {
+    display: none;
+  }
+}

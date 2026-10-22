@@ -14,7 +14,35 @@
   border-top: var(--filete-fino);
 }
 
-.mapa .maplibregl-ctrl-attrib {
+.mapa .maplibregl-ctrl-attrib,
+.mapa .maplibregl-ctrl-scale {
   font-family: var(--familia);
   font-size: var(--t-etiqueta);
+}
+
+.mapa .maplibregl-ctrl-scale {
+  border-color: var(--tinta);
+}
+
+.mapa .maplibregl-popup-content {
+  border-radius: 0;
+  padding: var(--e-2) var(--e-3);
+  border-top: 3px solid var(--tinta);
+  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.18);
+  font-family: var(--familia);
+}
+
+.detalle {
+  display: grid;
+  gap: 2px;
+  font-size: var(--t-chico);
+}
+
+.detalle span {
+  color: var(--tinta-2);
+}
+
+.detalle a {
+  margin-top: var(--e-1);
+  font-weight: var(--peso-medio);
 }

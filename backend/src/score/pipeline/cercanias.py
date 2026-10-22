@@ -1,71 +1,26 @@
-"""Cercanías por hexágono: minutos al punto de interés más cercano y conteos alrededor.
+"""Cercanías: precálculo sobre toda la red de calles y valores por hexágono.
 
-Para cada hexágono habitado de la RM se calcula, por categoría:
-- min_<id>:    minutos a pie (o en auto) al más cercano, medidos sobre la red de calles
-- cerca_<id>:  nombre de ese lugar
-- n800_<id>:   cuántos hay a menos de 800 m en línea recta (oferta del barrio)
-y además la oferta de buses en los paraderos a menos de 400 m.
+1. Por cada categoría (Metro, supermercado, urgencia…) se corre un Dijkstra multi-fuente
+   sobre la red de calles y se guarda, para cada nodo, los minutos al lugar más cercano y
+   cuál es (data/processed/motor/).
+2. Con ese motor se evalúa cada hexágono habitado:
+   - min_<id>:    minutos a pie (o en auto) al más cercano
+   - cerca_<id>:  nombre de ese lugar
+   - n800_<id>:   cuántos hay a menos de 800 m en línea recta
+   - recorridos y buses a 400 m, distancia a vías rápidas y desamenidades.
+La app usa el mismo motor para responder en el punto exacto que se toca.
 """
 
-from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 import pandas as pd
-from scipy.spatial import cKDTree
+from scipy.sparse import save_npz
 
-from score.pipeline.red import VELOCIDAD_PEATON_M_MIN, Alcance, Modo, Red, proyectar
-
-
-@dataclass(frozen=True)
-class Medida:
-    id: str
-    categorias: tuple[str, ...]
-    modo: Modo
-    hacia_los_puntos: bool = True
-
-
-# A pie: lo que se usa en la vida diaria. En auto: emergencias y conectividad vial.
-MEDIDAS: tuple[Medida, ...] = (
-    Medida("metro", ("metro",), Modo.PIE),
-    Medida("tren", ("tren",), Modo.PIE),
-    Medida("paradero", ("paradero",), Modo.PIE),
-    Medida("supermercado", ("supermercado",), Modo.PIE),
-    Medida("farmacia", ("farmacia",), Modo.PIE),
-    Medida("banco", ("banco",), Modo.PIE),
-    Medida("cajero", ("cajero", "banco"), Modo.PIE),
-    Medida("colegio", ("colegio",), Modo.PIE),
-    Medida("jardin", ("jardin",), Modo.PIE),
-    Medida("cesfam", ("cesfam",), Modo.PIE),
-    Medida("feria", ("feria",), Modo.PIE),
-    Medida("mall", ("mall",), Modo.PIE),
-    Medida("gimnasio", ("gimnasio",), Modo.PIE),
-    Medida("plaza", ("plaza", "parque"), Modo.PIE),
-    Medida("parque", ("parque",), Modo.PIE),
-    Medida("urgencia", ("urgencia",), Modo.AUTO),
-    Medida("hospital_clinica", ("hospital_clinica",), Modo.AUTO),
-    Medida("bomberos", ("bomberos",), Modo.AUTO, hacia_los_puntos=False),
-    Medida("policia", ("policia",), Modo.AUTO, hacia_los_puntos=False),
-    Medida("acceso_autopista", ("acceso_autopista",), Modo.AUTO),
-    Medida("centro_empleo", ("centro_empleo",), Modo.AUTO),
-)
-
-# Distancia en línea recta (m) a lo que molesta por estar cerca, no por tener que ir.
-DESAMENIDADES: tuple[str, ...] = ("carcel", "vertedero", "planta_tratamiento")
-
-CONTEOS_800M: dict[str, tuple[str, ...]] = {
-    "colegio": ("colegio",),
-    "jardin": ("jardin",),
-    "supermercado": ("supermercado",),
-    "farmacia": ("farmacia",),
-    "paradero": ("paradero",),
-    "comercio_barrio": ("restaurante", "cafe", "feria", "gimnasio"),
-}
-RADIO_CONTEO_M = 800.0
-RADIO_BUSES_M = 400.0
-# Más allá de esto el lugar se considera "no accesible" desde el hexágono.
-MINUTOS_MAXIMOS = 120.0
+from score.adapters.motor_cercanias import MotorCercanias
+from score.domain.geo import proyectar
+from score.pipeline.medidas import MEDIDAS, Medida
+from score.pipeline.red import VELOCIDAD_PEATON_M_MIN, Alcance, Modo, Red
 
 
 def _puntos_de_parques(parques: pd.DataFrame, categorias: tuple[str, ...]) -> pd.DataFrame:
@@ -80,96 +35,47 @@ def _puntos_de_parques(parques: pd.DataFrame, categorias: tuple[str, ...]) -> pd
     )
 
 
+def fuente_de(medida: Medida, puntos: pd.DataFrame, parques: pd.DataFrame) -> pd.DataFrame:
+    if medida.id in ("plaza", "parque"):
+        return _puntos_de_parques(parques, medida.categorias)
+    return puntos[puntos["categoria"].isin(medida.categorias)].reset_index(drop=True)
+
+
 def _a_minutos(red: Red, costo: np.ndarray) -> np.ndarray:
-    minutos = costo / VELOCIDAD_PEATON_M_MIN if red.modo is Modo.PIE else costo / 60.0
-    return np.where(minutos <= MINUTOS_MAXIMOS, minutos, np.nan)
+    return costo / VELOCIDAD_PEATON_M_MIN if red.modo is Modo.PIE else costo / 60.0
 
 
-def _distancia_recta(hx: np.ndarray, hy: np.ndarray, puntos: pd.DataFrame) -> np.ndarray:
-    """Metros en línea recta al punto más cercano (infinito si no hay puntos)."""
-    if len(puntos) == 0:
-        return np.full(len(hx), np.inf)
-    arbol = cKDTree(np.column_stack(proyectar(puntos["lat"].to_numpy(), puntos["lon"].to_numpy())))
-    distancia, _ = arbol.query(np.column_stack([hx, hy]))
-    return np.asarray(distancia, dtype=float)
-
-
-def calcular(
-    hexagonos: pd.DataFrame,
+def guardar_motor(
+    redes: dict[Modo, Red],
     puntos: pd.DataFrame,
     parques: pd.DataFrame,
     vias_rapidas: pd.DataFrame,
-    redes: dict[Modo, Red],
-) -> pd.DataFrame:
-    resultado = hexagonos.copy()
-    hx, hy = proyectar(hexagonos["lat"].to_numpy(), hexagonos["lon"].to_numpy())
-    ajustes = {modo: red.ajustar(hx, hy) for modo, red in redes.items()}
-
-    resultado["m_via_rapida"] = _distancia_recta(hx, hy, vias_rapidas).round()
-    resultado["m_desamenidad"] = _distancia_recta(
-        hx, hy, puntos[puntos["categoria"].isin(DESAMENIDADES)]
-    ).round()
+    carpeta: Path,
+) -> Path:
+    """Corre un Dijkstra por medida y guarda el motor de cercanías en `carpeta`."""
+    carpeta.mkdir(parents=True, exist_ok=True)
+    for modo, red in redes.items():
+        np.save(carpeta / f"nodos_{modo}.npy", np.column_stack([red.x, red.y]).astype(np.float32))
+    save_npz(carpeta / "grafo_pie.npz", redes[Modo.PIE].grafo)
 
     for medida in MEDIDAS:
         red = redes[medida.modo]
-        if medida.id in ("plaza", "parque"):
-            fuente = _puntos_de_parques(parques, medida.categorias)
-        else:
-            fuente = puntos[puntos["categoria"].isin(medida.categorias)].reset_index(drop=True)
+        fuente = fuente_de(medida, puntos, parques)
         px, py = proyectar(fuente["lat"].to_numpy(), fuente["lon"].to_numpy())
         alcance: Alcance = red.costo_minimo(px, py, medida.hacia_los_puntos)
-
-        nodo, separacion = ajustes[medida.modo]
-        costo = alcance.costo[nodo] + red.costo_de_acceso(separacion)
-        minutos = _a_minutos(red, costo)
-        resultado[f"min_{medida.id}"] = minutos.round(1)
-        indice = alcance.punto[nodo]
-        nombres = fuente["nombre"].to_numpy(dtype=object)
-        alcanzable = (indice >= 0) & np.isfinite(minutos)
-        cercano = nombres[np.maximum(indice, 0)]
-        cercano[~alcanzable] = None
-        resultado[f"cerca_{medida.id}"] = cercano
-
-    for id_conteo, categorias in CONTEOS_800M.items():
-        sel = puntos[puntos["categoria"].isin(categorias)]
-        arbol = cKDTree(np.column_stack(proyectar(sel["lat"].to_numpy(), sel["lon"].to_numpy())))
-        resultado[f"n800_{id_conteo}"] = arbol.query_ball_point(
-            np.column_stack([hx, hy]), RADIO_CONTEO_M, return_length=True
+        np.save(
+            carpeta / f"{medida.id}_minutos.npy", _a_minutos(red, alcance.costo).astype(np.float32)
         )
+        np.save(carpeta / f"{medida.id}_lugar.npy", alcance.punto.astype(np.int32))
+        fuente[["nombre", "lat", "lon"]].to_parquet(carpeta / f"{medida.id}_lugares.parquet")
 
-    resultado = resultado.join(_oferta_buses(hexagonos, puntos))
-    return resultado
-
-
-def _oferta_buses(hexagonos: pd.DataFrame, puntos: pd.DataFrame) -> pd.DataFrame:
-    """Recorridos distintos y frecuencia del paradero más servido a menos de 400 m."""
-    paraderos = puntos[puntos["categoria"] == "paradero"].reset_index(drop=True)
-    arbol = cKDTree(
-        np.column_stack(proyectar(paraderos["lat"].to_numpy(), paraderos["lon"].to_numpy()))
-    )
-    hx, hy = proyectar(hexagonos["lat"].to_numpy(), hexagonos["lon"].to_numpy())
-    # Con varios puntos de consulta, scipy devuelve una lista de índices por punto.
-    cercanos = cast(
-        list[list[int]], arbol.query_ball_point(np.column_stack([hx, hy]), RADIO_BUSES_M)
-    )
-    recorridos = paraderos["recorridos"].to_numpy()
-    frecuencia = paraderos["salidas_hora"].fillna(0).to_numpy()
-    return pd.DataFrame(
-        {
-            "recorridos_400m": [
-                len({r for i in idx for r in (recorridos[i] if recorridos[i] is not None else [])})
-                for idx in cercanos
-            ],
-            "buses_hora_max_400m": [
-                float(frecuencia[idx].max()) if idx else 0.0 for idx in cercanos
-            ],
-        },
-        index=hexagonos.index,
-    ).round(1)
+    puntos.to_parquet(carpeta / "puntos.parquet")
+    vias_rapidas.to_parquet(carpeta / "vias_rapidas.parquet")
+    return carpeta
 
 
 def construir_cercanias(raw: Path, interim: Path, procesados: Path) -> Path:
-    """Trabajo completo: OSM → redes → puntos de interés → hexágonos → cercanías."""
+    """Trabajo completo: OSM → redes → puntos de interés → motor → hexágonos."""
     from score.pipeline import hexagonos as hx
     from score.pipeline import puntos as pt
     from score.pipeline.extraccion import asegurar_extraido
@@ -191,15 +97,18 @@ def construir_cercanias(raw: Path, interim: Path, procesados: Path) -> Path:
     puntos, parques = pt.construir_catalogo(
         gtfs, next(minsal.glob("*.shp")), next(mineduc.glob("*.csv")), osm_rm
     )
-    grilla = hx.grilla(next(cartografia.glob("*_Manzanas.parquet")))
     redes = {modo: construir_red(osm_rm, modo) for modo in Modo}
-    vias = pt.vias_rapidas(osm_rm)
-    return guardar(calcular(grilla, puntos, parques, vias, redes), puntos, procesados)
+    carpeta_motor = guardar_motor(
+        redes, puntos, parques, pt.vias_rapidas(osm_rm), procesados / "motor"
+    )
 
+    motor = MotorCercanias.desde_carpeta(carpeta_motor, con_grafo=False)
+    grilla = hx.grilla(next(cartografia.glob("*_Manzanas.parquet")))
+    cercanias = motor.evaluar(grilla["lat"].to_numpy(), grilla["lon"].to_numpy())
+    cercanias.index = grilla.index
+    resultado = grilla.join(cercanias)
 
-def guardar(cercanias: pd.DataFrame, puntos: pd.DataFrame, procesados: Path) -> Path:
-    procesados.mkdir(parents=True, exist_ok=True)
     destino = procesados / "hexagonos.parquet"
-    cercanias.reset_index().to_parquet(destino)
-    puntos.drop(columns=["recorridos"]).to_parquet(procesados / "puntos_interes.parquet")
+    resultado.reset_index().to_parquet(destino)
+    puntos.to_parquet(procesados / "puntos_interes.parquet")
     return destino

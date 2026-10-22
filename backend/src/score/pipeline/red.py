@@ -17,13 +17,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, dijkstra
 from scipy.spatial import cKDTree
 
-Arreglo = npt.NDArray[np.float64]
-
-# Proyección local equirectangular centrada en Santiago: error < 1% en toda la RM,
-# suficiente para distancias de caminata y búsqueda de vecinos.
-_LAT0 = -33.45
-_M_POR_GRADO_LAT = 110_574.0
-_M_POR_GRADO_LON = 111_320.0 * float(np.cos(np.radians(_LAT0)))
+from score.domain.geo import Arreglo, proyectar
 
 VELOCIDAD_PEATON_M_MIN = 80.0  # 4,8 km/h
 
@@ -64,9 +58,9 @@ class Modo(StrEnum):
     AUTO = "auto"
 
 
-def proyectar(lat: Arreglo, lon: Arreglo) -> tuple[Arreglo, Arreglo]:
-    """Grados a metros en la proyección local."""
-    return np.asarray(lon) * _M_POR_GRADO_LON, np.asarray(lat) * _M_POR_GRADO_LAT
+def minutos_de_acceso(modo: Modo, metros: Arreglo) -> Arreglo:
+    """Minutos para recorrer en línea recta el tramo entre un punto y la red."""
+    return metros / VELOCIDAD_PEATON_M_MIN if modo is Modo.PIE else metros / (15_000 / 60)
 
 
 @dataclass(frozen=True)
