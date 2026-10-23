@@ -4,3 +4,4 @@
 *.pdf binary
 *.parquet binary
 *.duckdb binary
+*.bat text eol=crlf
