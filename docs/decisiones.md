@@ -237,3 +237,12 @@ policiales. Con el cambio, Providencia sube a 68 y Puente Alto baja a 47. La seg
 explica mejor el precio (ρ 0,57 → 0,62); el puntaje total queda igual por hexágono
 (0,61) y baja levemente por comuna (0,52 → 0,49) y contra el ICVU (0,66 → 0,65). El
 nombre anterior hacía pensar en delincuencia, que se mide en Seguridad.
+
+## D-029 · Código público con licencia MIT, datos fuera del repositorio
+**Fecha:** 2026-10-22
+**Decisión:** el código se publica en GitHub con licencia MIT para que cualquiera pueda
+correrlo en su computador. Los datos no se suben: cada persona los descarga de las fuentes
+oficiales con el pipeline. Los avisos de arriendo descargados nunca se versionan. Ajusta
+D-005: la app sigue corriendo localmente, pero el código ya no es solo personal.
+**Por qué:** los datos pesan varios GB y cada fuente tiene su propia licencia; los avisos
+pertenecen a los portales y no corresponde redistribuirlos.
