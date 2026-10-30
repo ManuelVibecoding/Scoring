@@ -32,19 +32,31 @@ def _listar(_: argparse.Namespace) -> int:
     return 0
 
 
+# Los sitios públicos a veces responden 500 o cortan la conexión: se reintenta con pausas.
+_ESPERAS_REINTENTO_S = (10, 30)
+
+
 def _descargar(args: argparse.Namespace) -> int:
+    import time
+
     fallidas: list[str] = []
     with _cliente() as cliente:
         for fuente in _seleccionar(args.fuentes, args.incluir_pesadas):
             print(f"→ {fuente.id}")
-            try:
-                for a in descargar_fuente(fuente, config.DATOS_CRUDOS, cliente, args.forzar):
-                    print(f"   {a.archivo}  {a.bytes / 1e6:.1f} MB")
-            except httpx.HTTPError as error:
-                print(f"   ERROR: {error}")
-                fallidas.append(fuente.id)
+            for intento, espera in enumerate((*_ESPERAS_REINTENTO_S, None), start=1):
+                try:
+                    for a in descargar_fuente(fuente, config.DATOS_CRUDOS, cliente, args.forzar):
+                        print(f"   {a.archivo}  {a.bytes / 1e6:.1f} MB")
+                    break
+                except httpx.HTTPError as error:
+                    print(f"   ERROR (intento {intento}): {error}")
+                    if espera is None:
+                        fallidas.append(fuente.id)
+                    else:
+                        time.sleep(espera)
     if fallidas:
         print(f"\nFallaron: {', '.join(fallidas)}")
+        print("Vuelve a correr el mismo comando más tarde: solo baja lo que falta.")
     return 1 if fallidas else 0
 
 
