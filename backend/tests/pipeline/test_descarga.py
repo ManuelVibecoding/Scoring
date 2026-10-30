@@ -74,6 +74,39 @@ def test_fuente_con_resolver_no_duplica_ni_redescarga(tmp_path: Path) -> None:
     assert len(llamadas) == 2
 
 
+def test_un_enlace_caido_no_deja_la_fuente_como_completa(tmp_path: Path) -> None:
+    """La Casen (BIDAT) respondió 500 a media descarga: la fuente debe volver a intentarse."""
+    caido = {"activo": True}
+    llamadas: list[str] = []
+
+    def responder(peticion: httpx.Request) -> httpx.Response:
+        url = str(peticion.url)
+        llamadas.append(url)
+        if url.endswith("/2") and caido["activo"]:
+            return httpx.Response(500)
+        return httpx.Response(200, content=url.encode())
+
+    cliente = httpx.Client(transport=httpx.MockTransport(responder))
+    fuente = Fuente(
+        id="prueba",
+        nombre="Prueba",
+        institucion="Test",
+        pagina="https://x.cl",
+        licencia="CC0",
+        descripcion="",
+        resolver=lambda _: [Recurso(f"https://x.cl/r/{i}", f"a{i}.xlsx") for i in (1, 2, 3)],
+    )
+
+    with pytest.raises(httpx.HTTPStatusError):
+        descargar_fuente(fuente, tmp_path, cliente)
+    assert sorted(p.name for p in (tmp_path / "prueba").glob("*.xlsx")) == ["a1.xlsx", "a3.xlsx"]
+
+    caido["activo"] = False
+    archivos = descargar_fuente(fuente, tmp_path, cliente)
+    assert sorted(a.archivo for a in archivos) == ["a1.xlsx", "a2.xlsx", "a3.xlsx"]
+    assert len(llamadas) == 6  # la segunda vez no se dio por terminada: bajó todo de nuevo
+
+
 @pytest.mark.parametrize(
     ("cabecera", "esperado"),
     [

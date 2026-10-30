@@ -53,10 +53,18 @@ def leer_manifiesto(carpeta: Path) -> dict[str, ArchivoDescargado]:
     return {d["url"]: ArchivoDescargado(**d) for d in datos["archivos"]}
 
 
+def _descarga_terminada(carpeta: Path) -> bool:
+    """Si la última descarga de la fuente llegó al final (los manifiestos antiguos no lo
+    registraban: se dan por terminados)."""
+    ruta = carpeta / MANIFIESTO
+    return ruta.exists() and json.loads(ruta.read_text(encoding="utf-8")).get("completa", True)
+
+
 def _escribir_manifiesto(
-    carpeta: Path, fuente: Fuente, archivos: dict[str, ArchivoDescargado]
+    carpeta: Path, fuente: Fuente, archivos: dict[str, ArchivoDescargado], completa: bool
 ) -> None:
     contenido = {
+        "completa": completa,
         "fuente": fuente.id,
         "nombre": fuente.nombre,
         "institucion": fuente.institucion,
@@ -75,30 +83,41 @@ def descargar_fuente(
     """Descarga todos los recursos de una fuente. Devuelve lo que quedó en disco.
 
     Las fuentes con resolver publican enlaces que cambian en cada visita, así que se
-    consideran completas si ya tienen archivos descargados, y su manifiesto se reemplaza
-    entero al volver a bajarlas.
+    consideran listas si su última descarga terminó sin errores, y su manifiesto se
+    reemplaza entero al volver a bajarlas.
+
+    Un enlace que falla no detiene la fuente (a veces el mismo archivo está publicado con
+    otro enlace): se sigue con el resto y al final se lanza el primer error, para que la
+    fuente quede marcada como incompleta y se vuelva a intentar.
     """
     carpeta = destino / fuente.id
     carpeta.mkdir(parents=True, exist_ok=True)
     previos = leer_manifiesto(carpeta)
     completos = all((carpeta / a.archivo).exists() for a in previos.values())
-    if fuente.resolver and previos and completos and not forzar:
+    if fuente.resolver and previos and completos and _descarga_terminada(carpeta) and not forzar:
         return list(previos.values())
 
     base = {} if fuente.resolver else previos
     resultado: dict[str, ArchivoDescargado] = {}
+    errores: list[httpx.HTTPError] = []
     for recurso in fuente.obtener_recursos(cliente):
         previo = base.get(recurso.url)
         if previo and not forzar and (carpeta / previo.archivo).exists():
             resultado[recurso.url] = previo
             continue
-        descargado = _descargar_recurso(recurso, carpeta, cliente)
+        try:
+            descargado = _descargar_recurso(recurso, carpeta, cliente)
+        except httpx.HTTPError as error:
+            errores.append(error)
+            continue
         if any(a.archivo == descargado.archivo for a in resultado.values()):
             continue  # el mismo archivo publicado con dos enlaces
         resultado[recurso.url] = descargado
-        _escribir_manifiesto(carpeta, fuente, {**base, **resultado})
+        _escribir_manifiesto(carpeta, fuente, {**base, **resultado}, completa=False)
 
-    _escribir_manifiesto(carpeta, fuente, {**base, **resultado})
+    _escribir_manifiesto(carpeta, fuente, {**base, **resultado}, completa=not errores)
+    if errores:
+        raise errores[0]
     return list(resultado.values())
 
 

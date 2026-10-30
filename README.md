@@ -17,7 +17,7 @@ fuentes oficiales con el pipeline incluido (ver abajo).
 - [uv](https://docs.astral.sh/uv/getting-started/installation/), que instala Python 3.12 por
   su cuenta
 - [Node.js](https://nodejs.org/) 20 o más nuevo
-- Unos 4 GB libres en disco e internet para la primera descarga
+- Unos 2 GB libres en disco (los datos ocupan ~1,5 GB) e internet para la primera descarga
 
 ### 2. Descargar el código e instalar dependencias
 
@@ -39,8 +39,12 @@ uv run python -m score puntajes                            # aplica el modelo a 
 uv run python -m score direcciones                         # índice para ubicar avisos de arriendo
 ```
 
-La descarga y el cálculo toman un buen rato la primera vez (la red de calles de toda la RM
-es lo más pesado). Después la app parte en segundos.
+En la prueba desde cero (30-10-2026) la descarga de ~650 MB tomó unos 17 minutos y el resto
+unos 5 minutos. Después la app parte en unos 20 segundos.
+
+Si una fuente falla (los sitios públicos a veces responden con error 500; en esa prueba le
+pasó a la Casen en bidat.gob.cl), el comando reintenta solo y al final dice cuál faltó.
+Vuelve a correr `datos descargar` más tarde: solo baja lo que falta.
 
 Los comandos usan `python -m` a propósito: en Windows, el Control inteligente de
 aplicaciones puede bloquear los `.exe` que crea uv (`score.exe`, `uvicorn.exe`).
