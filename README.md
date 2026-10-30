@@ -32,34 +32,49 @@ cd frontend && npm install && cd ..
 
 ```bash
 cd backend
-uv run score datos descargar --incluir-pesadas   # fuentes oficiales y OpenStreetMap
-uv run score comunas                             # fichas de las 52 comunas
-uv run score cercanias                           # red de calles y minutos a cada lugar
-uv run score puntajes                            # aplica el modelo a cada hexágono
-uv run score direcciones                         # índice para ubicar avisos de arriendo
+uv run python -m score datos descargar --incluir-pesadas   # fuentes oficiales y OpenStreetMap
+uv run python -m score comunas                             # fichas de las 52 comunas
+uv run python -m score cercanias                           # red de calles y minutos a cada lugar
+uv run python -m score puntajes                            # aplica el modelo a cada hexágono
+uv run python -m score direcciones                         # índice para ubicar avisos de arriendo
 ```
 
 La descarga y el cálculo toman un buen rato la primera vez (la red de calles de toda la RM
 es lo más pesado). Después la app parte en segundos.
 
-Opcional: `uv run score precios` baja una muestra de avisos de arriendo de toda la RM
-(Toc Toc y Portal Inmobiliario, ~1 h) y `uv run score validar` compara el puntaje con esos
-precios. Sin la muestra la app funciona igual: los arriendos de una comuna se consultan la
-primera vez que los pides (puede tardar un par de minutos) y quedan guardados 7 días.
+Los comandos usan `python -m` a propósito: en Windows, el Control inteligente de
+aplicaciones puede bloquear los `.exe` que crea uv (`score.exe`, `uvicorn.exe`).
 
-### 4. Abrir la app
+### 4. Bajar los arriendos (cuando quieras actualizarlos)
+
+En Windows, doble clic en `actualizar_arriendos.bat`. En macOS o Linux:
+
+```bash
+cd backend && uv run python -m score precios
+```
+
+Recorre Toc Toc y Portal Inmobiliario en las 52 comunas (alrededor de una hora) y guarda un
+archivo con la fecha del día en `data/interim/avisos/`. La app siempre usa el más nuevo,
+incluso si está abierta, y nunca consulta los portales por su cuenta: si no corres el
+scraper, sigue usando los últimos avisos guardados. Si un portal falla en una comuna, esa
+comuna conserva sus avisos anteriores. Sin ningún archivo, la app funciona igual, pero sin
+arriendos. Con avisos guardados, `uv run python -m score validar` compara el puntaje con los
+precios.
+
+### 5. Abrir la app
 
 En Windows, doble clic en `iniciar.bat`. En macOS o Linux, en dos terminales:
 
 ```bash
-cd backend && uv run uvicorn score.entrypoints.api:app_por_defecto --factory --port 8000
+cd backend && uv run python -m uvicorn score.entrypoints.api:app_por_defecto --factory --port 8000
 ```
 
 ```bash
 cd frontend && npm run dev
 ```
 
-Luego abre http://localhost:5173.
+Luego abre http://localhost:5173. Si `iniciar.bat` no abre el navegador, revisa el error en
+la ventana "Score API".
 
 ## Sobre los datos y el scraping
 

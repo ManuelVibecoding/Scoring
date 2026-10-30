@@ -1,12 +1,12 @@
 """Puertos: lo que los casos de uso necesitan del mundo exterior, sin decir cómo se obtiene."""
 
-from datetime import datetime
+from datetime import date
 from typing import Any, Protocol
 
 import pandas as pd
 from shapely.geometry.base import BaseGeometry
 
-from score.domain.avisos import Aviso, TipoPropiedad
+from score.domain.avisos import Aviso
 
 
 class RepositorioPuntajes(Protocol):
@@ -59,17 +59,14 @@ class MotorDeCercanias(Protocol):
         ...
 
 
-class CacheAvisos(Protocol):
-    def consultado_en(self, fuente: str, comuna: str, tipo: TipoPropiedad) -> datetime | None: ...
+class AvisosDeArriendo(Protocol):
+    """Avisos guardados por el último scraper; la app solo los lee."""
 
-    def guardar(
-        self,
-        fuente: str,
-        comuna: str,
-        tipo: TipoPropiedad,
-        avisos: list[Aviso],
-        momento: datetime,
-    ) -> None: ...
+    def fecha(self) -> date | None:
+        """Día en que se corrió el scraper (None si nunca se ha corrido)."""
+        ...
+
+    def fuentes(self) -> list[str]: ...
 
     def todos(self) -> pd.DataFrame:
         """Avisos ubicados con confianza (para dibujarlos en el mapa)."""

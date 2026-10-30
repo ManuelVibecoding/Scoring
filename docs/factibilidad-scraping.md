@@ -32,7 +32,8 @@ URL de la ficha, identificador.
    para abrir solo las fichas cercanas al punto.
 3. **Estrategia concreta para el clic:** se scrapea la comuna del punto (y las vecinas si
    el punto está cerca del límite), se guardan todos los avisos con fecha en DuckDB y se
-   filtran los que están a menos de ~800 m. La comuna queda en caché 7 días.
+   filtran los que están a menos de ~800 m. La comuna queda en caché 7 días. (Reemplazado
+   por D-030: hoy el scraper recorre toda la RM cuando se corre y la app solo lee.)
 4. Se respetan las rutas prohibidas por `robots.txt` y un ritmo de una petición cada
    1–2 segundos.
 

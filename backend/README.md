@@ -23,10 +23,11 @@ uv run pytest           # pruebas
 uv run ruff check .     # estilo
 uv run mypy             # tipos
 
-uv run score datos listar                       # fuentes registradas
-uv run score datos descargar                    # baja las fuentes livianas a data/raw
-uv run score datos descargar --incluir-pesadas  # también OSM y ruido (~570 MB)
-uv run score comunas                            # fichas de las 52 comunas
-uv run score cercanias                          # cercanías por hexágono (~80 s)
-uv run score direcciones                        # índice de direcciones de OSM para ubicar avisos
+# Se usa `python -m score` (no `score.exe`): Windows puede bloquear los .exe que crea uv.
+uv run python -m score datos listar                       # fuentes registradas
+uv run python -m score datos descargar                    # fuentes livianas a data/raw
+uv run python -m score datos descargar --incluir-pesadas  # también OSM y ruido (~570 MB)
+uv run python -m score comunas                            # fichas de las 52 comunas
+uv run python -m score cercanias                          # cercanías por hexágono
+uv run python -m score direcciones                        # direcciones de OSM para ubicar avisos
 ```

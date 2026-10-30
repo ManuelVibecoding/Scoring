@@ -1,6 +1,6 @@
 """Pruebas de la API con dobles en memoria (sin red ni archivos)."""
 
-from datetime import datetime
+from datetime import date
 from typing import Any, ClassVar
 
 import pandas as pd
@@ -87,24 +87,17 @@ class RepositorioFalso:
         return {"type": "FeatureCollection", "features": []}
 
 
-class CacheFalsa:
+class AvisosFalsos:
+    """Lo que dejó el último scraper: un departamento y una casa a 600 mil."""
+
     def __init__(self) -> None:
-        self.guardados: list[str] = []
-        self.avisos: list[Aviso] = []
+        self.avisos = [_aviso(f"{t}-1", t, 600_000.0) for t in TipoPropiedad]
 
-    def consultado_en(self, fuente: str, comuna: str, tipo: TipoPropiedad) -> datetime | None:
-        return None
+    def fecha(self) -> date | None:
+        return date(2026, 10, 22)
 
-    def guardar(
-        self,
-        fuente: str,
-        comuna: str,
-        tipo: TipoPropiedad,
-        avisos: list[Aviso],
-        momento: datetime,
-    ) -> None:
-        self.guardados.append(f"{fuente}/{comuna}/{tipo}")
-        self.avisos.extend(avisos)
+    def fuentes(self) -> list[str]:
+        return ["falso"]
 
     def todos(self) -> pd.DataFrame:
         return pd.DataFrame(
@@ -122,15 +115,6 @@ class CacheFalsa:
 
     def en_rectangulo(self, *_: float) -> list[Aviso]:
         return self.avisos
-
-
-class PortalFalso:
-    nombre = "falso"
-
-    def avisos_de_comuna(
-        self, comuna: str, operacion: Operacion, tipo: TipoPropiedad
-    ) -> list[Aviso]:
-        return [_aviso(f"{tipo}-1", tipo, 600_000.0)]
 
 
 class GeocodificadorFalso:
@@ -167,8 +151,7 @@ class SuperficiesFalsas:
 def _cliente(con_motor: bool = False) -> TestClient:
     dep = Dependencias(
         RepositorioFalso(),
-        CacheFalsa(),
-        [PortalFalso()],
+        AvisosFalsos(),
         GeocodificadorFalso(),
         MotorFalso() if con_motor else None,
         SuperficiesFalsas(),
@@ -209,17 +192,17 @@ def test_punto_fuera_de_la_rm_es_rechazado(cliente: TestClient) -> None:
     assert cliente.get("/api/punto", params={"lat": -20.0, "lon": -70.6}).status_code == 422
 
 
-def test_precios_consulta_el_portal_cuando_no_hay_cache(cliente: TestClient) -> None:
+def test_precios_usa_los_avisos_del_ultimo_scraper(cliente: TestClient) -> None:
     r = cliente.get("/api/precios", params={"lat": LAT, "lon": LON})
     assert r.status_code == 200
     datos = r.json()
     assert datos["avisos"] == 2
     assert datos["mediana_arriendo_clp"] == 600_000
     assert datos["fuentes"] == ["falso"]
+    assert datos["actualizado"] == "2026-10-22"
 
 
 def test_zona_resume_hexagonos_lugares_y_precios(cliente: TestClient) -> None:
-    cliente.get("/api/precios", params={"lat": LAT, "lon": LON})  # llena la caché falsa
     cuadrado = {
         "type": "Polygon",
         "coordinates": [

@@ -88,3 +88,11 @@ export function enumerar(partes: readonly string[]): string {
   if (partes.length <= 1) return partes.join("");
   return `${partes.slice(0, -1).join(", ")} y ${partes.at(-1) ?? ""}`;
 }
+
+const diaYMes = new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "short" });
+
+/** "2026-10-22" → "22 oct". Una fecha sin hora se lee como día local (no como medianoche UTC). */
+export function diaCorto(iso: string): string {
+  const [anio, mes, dia] = iso.slice(0, 10).split("-").map(Number);
+  return diaYMes.format(new Date(anio ?? 0, (mes ?? 1) - 1, dia ?? 1));
+}

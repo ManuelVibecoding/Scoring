@@ -34,13 +34,13 @@ Navegador (React + MapLibre + Terra Draw)
    ▼
 FastAPI  (entrypoints/api.py)
    ├─ services/consulta_punto.py   ficha del punto exacto
-   ├─ services/precios.py          arriendos con caché
+   ├─ services/precios.py          arriendos a 800 m
    ├─ services/zona.py             informe de una zona dibujada
    └─ puertos (services/puertos.py)
         ├─ adapters/repositorio_parquet.py    puntajes, lugares y comunas en memoria
         ├─ adapters/motor_cercanias.py        minutos por la red desde cualquier punto
         ├─ adapters/superficie.py             capa de calor (PNG georreferenciado)
-        ├─ adapters/cache_avisos.py           caché DuckDB (data/cache/avisos.duckdb)
+        ├─ adapters/avisos_guardados.py       avisos del último scraper (solo lectura)
         ├─ adapters/toctoc.py                 portal de avisos con coordenadas
         ├─ adapters/portal_inmobiliario.py    portal de avisos con dirección escrita
         ├─ adapters/geocodificador_local.py   direcciones de OSM → coordenadas
@@ -54,18 +54,22 @@ FastAPI  (entrypoints/api.py)
 | `GET /api/comunas` | Límites comunales simplificados (GeoJSON) |
 | `GET /api/punto?lat&lon` | Ficha completa del punto |
 | `GET /api/isocrona?lat&lon` | Áreas a 5, 10 y 15 minutos a pie (GeoJSON) |
-| `GET /api/precios?lat&lon` | Arriendos a 800 m |
+| `GET /api/precios?lat&lon` | Arriendos a 800 m, con la fecha de los avisos usados |
 | `POST /api/zona` | Informe de la zona; cuerpo `{"geometria": <Polygon GeoJSON>}` |
 | `GET /api/lugares?categorias=metro,colegio` | Lugares del catálogo (GeoJSON) |
-| `GET /api/avisos` | Avisos bien ubicados de la caché (GeoJSON) |
+| `GET /api/avisos` | Avisos bien ubicados del último scraper (GeoJSON) |
 | `GET /api/buscar?q` | Direcciones en la RM |
 | `GET /api/direccion?lat&lon` | Calle y número del punto |
 | `GET /api/capa` | Puntajes por hexágono en formato columnar (el mapa ya no lo usa) |
 
-La caché de avisos parte cargada con la última muestra de `uv run score precios`
-(`data/interim/avisos/avisos_arriendo_*.parquet`); desde ahí, cada comuna y portal se
-vuelve a consultar si su dato tiene más de 7 días. Si cambia el formato de la caché,
-basta con borrar `data/cache/avisos.duckdb`: se vuelve a crear desde la muestra.
+Los arriendos salen del último archivo que dejó el scraper (`actualizar_arriendos.bat` o
+`uv run python -m score precios`) en `data/interim/avisos/avisos_arriendo_AAAAMMDD.parquet`.
+La app nunca consulta los portales por su cuenta (D-030): si aparece un archivo más nuevo
+con la app abierta, lo usa desde la consulta siguiente. Los archivos anteriores quedan como
+historial.
+
+La API se lanza con `python -m uvicorn` y no con `uvicorn.exe`, porque el Control
+inteligente de aplicaciones de Windows puede bloquear los `.exe` que crea uv.
 
 ## Probado
 

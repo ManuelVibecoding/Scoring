@@ -54,7 +54,7 @@ export function App() {
   const [dialogo, setDialogo] = useState<Dialogo>(null);
 
   const datos = useDatosMapa({ lugares: opciones.lugares, avisos: opciones.avisos });
-  const { ficha, direccion, precios, consultarPrecios } = usePunto(punto);
+  const { ficha, direccion, precios, reintentarPrecios } = usePunto(punto);
   const estadoZona = useZona(zona);
 
   // Esc vuelve a la herramienta de punto (Terra Draw ya descarta el dibujo a medias).
@@ -221,12 +221,8 @@ export function App() {
             isocrona={isocronaDelPunto ? (isocronaDelPunto.datos ? "visible" : "cargando") : "oculta"}
             comparando={comparando}
             puedeComparar={comparados.length < MAXIMO_COMPARADOS}
-            onConsultarPrecios={consultarPrecios}
-            onExportar={() => {
-              // La ficha incluye arriendos: si aún no se consultaron, se piden al abrir.
-              if (precios.tipo === "inicial") consultarPrecios();
-              setDialogo("ficha");
-            }}
+            onReintentarPrecios={reintentarPrecios}
+            onExportar={() => setDialogo("ficha")}
             onIsocrona={alternarIsocrona}
             onComparar={alternarComparar}
             onCerrar={() => setPunto(null)}

@@ -246,3 +246,24 @@ oficiales con el pipeline. Los avisos de arriendo descargados nunca se versionan
 D-005: la app sigue corriendo localmente, pero el código ya no es solo personal.
 **Por qué:** los datos pesan varios GB y cada fuente tiene su propia licencia; los avisos
 pertenecen a los portales y no corresponde redistribuirlos.
+
+## D-030 · Los arriendos se actualizan solo al correr el scraper
+**Fecha:** 2026-10-30
+**Decisión:** la app ya no consulta los portales cuando se toca un punto. Usa siempre el
+archivo más nuevo que dejó el scraper (`score precios`, o `actualizar_arriendos.bat`), y
+lo cambia sola si aparece uno más nuevo con la app abierta. Si un portal falla en una
+comuna, esa comuna conserva sus avisos de la corrida anterior; si no se obtiene nada, no
+se escribe archivo. Se elimina la caché DuckDB de avisos. Reemplaza el "scraping bajo
+demanda" y la caché de 7 días de D-006.
+**Por qué:** con la caché de 7 días, al vencer un dato un clic podía tardar minutos
+mientras se volvía a recorrer el portal, y una muestra nueva no entraba a la app si la
+caché ya tenía datos. Ahora cada clic responde al tiro con la última data, y el usuario
+decide cuándo actualizarla.
+
+## D-031 · El backend se lanza con `python -m`, no con los .exe de uv
+**Fecha:** 2026-10-30
+**Decisión:** `iniciar.bat`, `actualizar_arriendos.bat` y la documentación usan
+`uv run python -m uvicorn` y `uv run python -m score`.
+**Por qué:** el Control inteligente de aplicaciones de Windows 11 bloqueó `uvicorn.exe`
+(error 4551) y no `score.exe`, aunque son el mismo lanzador de uv: decide archivo por
+archivo según su reputación. `python.exe` está firmado y no tiene ese problema.

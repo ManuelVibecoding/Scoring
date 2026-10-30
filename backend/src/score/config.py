@@ -10,6 +10,9 @@ DATOS_CRUDOS = DATOS / "raw"
 DATOS_INTERMEDIOS = DATOS / "interim"
 DATOS_PROCESADOS = DATOS / "processed"
 
+# Avisos de arriendo: un archivo por corrida del scraper; la app usa el más nuevo.
+CARPETA_AVISOS = DATOS_INTERMEDIOS / "avisos"
+
 # Código CUT de la Región Metropolitana: las comunas de la RM empiezan con 13.
 REGION_METROPOLITANA = 13
 

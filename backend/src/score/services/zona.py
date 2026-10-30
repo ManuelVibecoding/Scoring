@@ -12,7 +12,7 @@ from score.domain.modelo import MODELO
 from score.domain.precios import EstadisticasPrecios, estadisticas, utiles
 from score.domain.veredicto import redactar
 from score.domain.zona import ResumenZona, resumir_zona
-from score.services.puertos import CacheAvisos, RepositorioPuntajes
+from score.services.puertos import AvisosDeArriendo, RepositorioPuntajes
 
 # Lo que se cuenta dentro de la zona: (etiqueta, categorías del catálogo).
 LUGARES_ZONA: tuple[tuple[str, str, tuple[str, ...]], ...] = (
@@ -63,7 +63,7 @@ def area_km2(zona: BaseGeometry) -> float:
 
 
 def informe_zona(
-    repo: RepositorioPuntajes, cache: CacheAvisos, geometria: dict[str, Any]
+    repo: RepositorioPuntajes, avisos: AvisosDeArriendo, geometria: dict[str, Any]
 ) -> InformeZona:
     zona = leer_zona(geometria)
     area = area_km2(zona)
@@ -76,7 +76,7 @@ def informe_zona(
     conteos = repo.contar_lugares_en(zona)
 
     lon_min, lat_min, lon_max, lat_max = zona.bounds
-    candidatos = cache.en_rectangulo(lat_min, lat_max, lon_min, lon_max)
+    candidatos = avisos.en_rectangulo(lat_min, lat_max, lon_min, lon_max)
     dentro = [a for a in candidatos if shapely.contains_xy(zona, a.lon, a.lat)]
 
     return InformeZona(

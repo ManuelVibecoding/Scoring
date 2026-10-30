@@ -14,7 +14,7 @@ interface Props {
   isocrona: "oculta" | "cargando" | "visible";
   comparando: boolean;
   puedeComparar: boolean;
-  onConsultarPrecios: () => void;
+  onReintentarPrecios: () => void;
   onExportar: () => void;
   onIsocrona: () => void;
   onComparar: () => void;
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function Panel(props: Props) {
-  const { ficha, direccion, precios, onConsultarPrecios, onCerrar } = props;
+  const { ficha, direccion, precios, onReintentarPrecios, onCerrar } = props;
   if (ficha.tipo === "vacio") {
     return (
       <Contenedor>
@@ -59,7 +59,7 @@ export function Panel(props: Props) {
       <Acciones {...props} />
       <Dimensiones dimensiones={f.dimensiones} />
       <Cercanias cercanias={f.cercanias} barrio={f.barrio} />
-      <Precios estado={precios} onConsultar={onConsultarPrecios} />
+      <Precios estado={precios} onReintentar={onReintentarPrecios} />
       <Comuna comuna={f.comuna} datos={f.datos_comunales} />
       <p className="panel-fuente">
         Modelo {f.version_modelo}. Fuentes: Censo 2024, Casen 2024, CEAD, Minsal, Mineduc, DTPM, OpenStreetMap.

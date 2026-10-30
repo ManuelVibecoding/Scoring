@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   conUnidad,
+  diaCorto,
   enumerar,
   minutos,
   nombreFuente,
@@ -54,5 +55,10 @@ describe("formato es-CL", () => {
     expect(nombreFuente("otra")).toBe("otra");
     expect(enumerar(["Toc Toc"])).toBe("Toc Toc");
     expect(enumerar(["a", "b", "c"])).toBe("a, b y c");
+  });
+
+  it("muestra el día de los avisos sin correrlo por la zona horaria", () => {
+    expect(diaCorto("2026-10-22")).toBe("22 oct");
+    expect(diaCorto("2026-10-22T09:15:00")).toBe("22 oct");
   });
 });

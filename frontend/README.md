@@ -9,7 +9,7 @@ Primero el backend (en otra terminal):
 
 ```bash
 cd backend
-uv run uvicorn score.entrypoints.api:app_por_defecto --factory --port 8000
+uv run python -m uvicorn score.entrypoints.api:app_por_defecto --factory --port 8000
 ```
 
 Luego la app:

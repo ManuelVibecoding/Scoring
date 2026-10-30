@@ -24,7 +24,7 @@ function mensaje(e: unknown, porDefecto: string): string {
   return e instanceof ErrorApi ? e.message : porDefecto;
 }
 
-/** Todo lo que se consulta al tocar un punto: ficha, dirección y (a pedido) precios. */
+/** Todo lo que se consulta al tocar un punto: ficha, dirección y arriendos cercanos. */
 export function usePunto(punto: Punto | null) {
   const [ficha, setFicha] = useState<De<EstadoFicha> | null>(null);
   const [direccion, setDireccion] = useState<De<string | null> | null>(null);
@@ -45,12 +45,21 @@ export function usePunto(punto: Punto | null) {
       .direccion(punto.lat, punto.lon)
       .then((r) => vigente && setDireccion({ punto, valor: r.direccion }))
       .catch(() => undefined);
+    // Los arriendos salen de los avisos guardados por el último scraper: responden al tiro.
+    api
+      .precios(punto.lat, punto.lon)
+      .then((resumen) => vigente && setPrecios({ punto, valor: { tipo: "listo", resumen } }))
+      .catch(
+        (e: unknown) =>
+          vigente &&
+          setPrecios({ punto, valor: { tipo: "error", mensaje: mensaje(e, "No se pudieron obtener los arriendos.") } }),
+      );
     return () => {
       vigente = false;
     };
   }, [punto]);
 
-  const consultarPrecios = useCallback(() => {
+  const reintentarPrecios = useCallback(() => {
     if (!punto) return;
     setPrecios({ punto, valor: { tipo: "cargando" } });
     api
@@ -59,7 +68,7 @@ export function usePunto(punto: Punto | null) {
       .catch((e: unknown) =>
         setPrecios({
           punto,
-          valor: { tipo: "error", mensaje: mensaje(e, "No se pudieron obtener los precios.") },
+          valor: { tipo: "error", mensaje: mensaje(e, "No se pudieron obtener los arriendos.") },
         }),
       );
   }, [punto]);
@@ -71,7 +80,7 @@ export function usePunto(punto: Punto | null) {
         ? ficha.valor
         : ({ tipo: "cargando" } as const),
     direccion: direccion?.punto === punto ? direccion.valor : null,
-    precios: precios?.punto === punto ? precios.valor : ({ tipo: "inicial" } as const),
-    consultarPrecios,
+    precios: precios?.punto === punto ? precios.valor : ({ tipo: "cargando" } as const),
+    reintentarPrecios,
   };
 }

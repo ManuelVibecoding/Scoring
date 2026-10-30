@@ -84,8 +84,10 @@ def _precios(_: argparse.Namespace) -> int:
     comunas = pd.read_parquet(config.DATOS_PROCESADOS / "comunas.parquet")["comuna"].tolist()
     with _cliente() as cliente:
         portales = crear_portales(cliente, config.DATOS_PROCESADOS)
-        ruta = muestrear(portales, comunas, config.DATOS_INTERMEDIOS / "avisos")
-    print(f"Muestra de avisos: {ruta}")
+        ruta = muestrear(portales, comunas, config.CARPETA_AVISOS)
+    if ruta is None:
+        return 1
+    print(f"Avisos guardados en {ruta}. La app ya los usa (no hace falta reiniciarla).")
     return 0
 
 
@@ -111,13 +113,13 @@ def _validar(_: argparse.Namespace) -> int:
 
     import pandas as pd
 
-    from score.pipeline.precios import ultima_muestra
+    from score.adapters.avisos_guardados import ultima_muestra
     from score.pipeline.validacion import lugares_de_referencia, validar
 
     datos = pd.read_parquet(config.DATOS_PROCESADOS / "puntajes.parquet").set_index("h3")
-    muestra = ultima_muestra(config.DATOS_INTERMEDIOS / "avisos")
+    muestra = ultima_muestra(config.CARPETA_AVISOS)
     if muestra is None:
-        print("No hay muestra de avisos: corre primero `uv run score precios`.")
+        print("No hay muestra de avisos: corre primero `uv run python -m score precios`.")
         return 1
     resultado, _comparados = validar(datos, pd.read_parquet(muestra))
     salida = config.DATOS_PROCESADOS / "validacion.json"

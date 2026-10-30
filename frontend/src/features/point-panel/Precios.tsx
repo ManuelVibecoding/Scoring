@@ -1,38 +1,28 @@
-import { enumerar, nombreFuente, numero, pesos } from "../../shared/formato";
+import { diaCorto, enumerar, nombreFuente, numero, pesos } from "../../shared/formato";
 import type { ResumenPrecios } from "../../shared/tipos";
 
 export type EstadoPrecios =
-  | { tipo: "inicial" }
   | { tipo: "cargando" }
   | { tipo: "listo"; resumen: ResumenPrecios }
   | { tipo: "error"; mensaje: string };
 
 interface Props {
   estado: EstadoPrecios;
-  onConsultar: () => void;
+  onReintentar: () => void;
 }
 
-const fecha = new Intl.DateTimeFormat("es-CL", { day: "numeric", month: "short" });
-
-/** Arriendos alrededor del punto. Se consultan a pedido porque pueden tardar. */
-export function Precios({ estado, onConsultar }: Props) {
+/** Arriendos alrededor del punto, con los avisos que dejó el último scraper. */
+export function Precios({ estado, onReintentar }: Props) {
   return (
     <section className="panel-seccion" aria-labelledby="titulo-precios" aria-live="polite">
       <h2 id="titulo-precios" className="etiqueta">
         Arriendos cercanos
       </h2>
-      {estado.tipo === "inicial" && (
-        <button type="button" className="boton-secundario" onClick={onConsultar}>
-          Ver arriendos a 800 m
-        </button>
-      )}
-      {estado.tipo === "cargando" && (
-        <p className="panel-nota">Consultando avisos… si la comuna no está en caché puede tardar hasta un minuto.</p>
-      )}
+      {estado.tipo === "cargando" && <p className="panel-nota">Buscando avisos…</p>}
       {estado.tipo === "error" && (
         <p className="panel-nota panel-nota-error">
           {estado.mensaje}{" "}
-          <button type="button" className="enlace" onClick={onConsultar}>
+          <button type="button" className="enlace" onClick={onReintentar}>
             Reintentar
           </button>
         </p>
@@ -43,6 +33,14 @@ export function Precios({ estado, onConsultar }: Props) {
 }
 
 function Resumen({ resumen }: { resumen: ResumenPrecios }) {
+  if (resumen.actualizado === null) {
+    return (
+      <p className="panel-nota">
+        Todavía no hay avisos guardados. Corre <code>actualizar_arriendos.bat</code> (o{" "}
+        <code>uv run python -m score precios</code>) para bajarlos.
+      </p>
+    );
+  }
   if (resumen.avisos === 0) {
     return <p className="panel-nota">No hay avisos de arriendo a menos de {numero(resumen.radio_m)} m.</p>;
   }
@@ -87,7 +85,7 @@ function Resumen({ resumen }: { resumen: ResumenPrecios }) {
       </ul>
       <p className="panel-fuente">
         {textoFuentes(resumen)}
-        {resumen.actualizado && `, avisos al ${fecha.format(new Date(resumen.actualizado))}`}.
+        {resumen.actualizado && `, avisos al ${diaCorto(resumen.actualizado)}`}.
       </p>
     </>
   );
