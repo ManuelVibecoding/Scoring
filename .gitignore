@@ -17,7 +17,6 @@ dist/
 data/raw/
 data/interim/
 data/processed/
-data/cache/
 *.duckdb
 *.duckdb.wal
 

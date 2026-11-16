@@ -7,7 +7,7 @@ data/
 ├─ raw/        descargas originales, tal cual vienen de la fuente
 ├─ interim/    datos limpios intermedios
 ├─ processed/  resultados listos para la app (por hexágono, por comuna)
-└─ cache/      base local de avisos (DuckDB) generada por el scraping bajo demanda
+└─ (los avisos de arriendo quedan en interim/avisos/, un archivo por corrida del scraper)
 ```
 
 El catálogo de fuentes (qué se descarga, de dónde, licencia y fecha) está en
